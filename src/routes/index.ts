@@ -6,7 +6,7 @@ import branchRoutes from './branch.routes';
 const router = Router();
 const defaultRoutes: { path: string; route: Router }[] = [
     { path: '/auth', route: authRoutes },
-    { path: '/branches', route: branchRoutes },
+    { path: '/branch', route: branchRoutes },
 ];
 
 defaultRoutes.forEach((route) => {

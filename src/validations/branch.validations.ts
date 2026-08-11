@@ -29,16 +29,12 @@ const branchOrderBySchema = z
     .default('created_at');
 const orderSchema = z.enum(['ASC', 'DESC', 'asc', 'desc']).optional().default('DESC');
 const branchImagesSchema = z
-    .array(
-        requiredString(validationMessages.branch.branchImageString).max(
-            500,
-            validationMessages.branch.branchImageMaxLength,
-        ),
-    )
+    .array(requiredString(validationMessages.branch.branchImageString))
     .max(10, validationMessages.branch.branchImagesMaxItems)
     .optional();
 
-const branchBodyObjectSchema = z.object({
+const branchBodyObjectSchema = z
+    .object({
         name: requiredString(validationMessages.branch.nameRequired).max(
             150,
             validationMessages.branch.nameMaxLength,
@@ -62,35 +58,23 @@ const branchBodyObjectSchema = z.object({
             validationMessages.branch.addressMaxLength,
         ),
         openingTime: optionalString(validationMessages.branch.openingTimeString).pipe(
-            z
-                .string()
-                .regex(timeRegex, validationMessages.branch.openingTimeInvalid)
-                .optional(),
+            z.string().regex(timeRegex, validationMessages.branch.openingTimeInvalid).optional(),
         ),
         closingTime: optionalString(validationMessages.branch.closingTimeString).pipe(
-            z
-                .string()
-                .regex(timeRegex, validationMessages.branch.closingTimeInvalid)
-                .optional(),
+            z.string().regex(timeRegex, validationMessages.branch.closingTimeInvalid).optional(),
         ),
         branchImages: branchImagesSchema,
         status: statusSchema,
     })
     .strict();
 
-const validateBranchTimeRange = (payload: {
-    openingTime?: string;
-    closingTime?: string;
-}) => !payload.openingTime || !payload.closingTime || payload.openingTime < payload.closingTime;
+const validateBranchTimeRange = (payload: { openingTime?: string; closingTime?: string }) =>
+    !payload.openingTime || !payload.closingTime || payload.openingTime < payload.closingTime;
 
-const branchBodySchema = branchBodyObjectSchema
-    .refine(
-        validateBranchTimeRange,
-        {
-            message: validationMessages.branch.openingTimeBeforeClosingTime,
-            path: ['closingTime'],
-        },
-    );
+const branchBodySchema = branchBodyObjectSchema.refine(validateBranchTimeRange, {
+    message: validationMessages.branch.openingTimeBeforeClosingTime,
+    path: ['closingTime'],
+});
 
 export const createBranchSchema = {
     body: branchBodySchema,

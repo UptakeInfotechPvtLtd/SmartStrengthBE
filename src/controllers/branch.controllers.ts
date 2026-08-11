@@ -45,11 +45,11 @@ export class BranchController {
 
     async getBranchById(req: IAuthenticatedRequest<BranchIdParamsPayload>) {
         const result = await this.branchService.getBranchById(req.params);
-        return new BaseResponseDto(messages.branchFetchedSuccessfully, result);
+        return new BaseResponseDto('', result);
     }
 
     async listBranches(req: Request<any, any, any, FetchBranchesQueryPayload>) {
         const result = await this.branchService.listBranches(req.query);
-        return new BaseResponseDto(messages.branchesFetchedSuccessfully, result);
+        return new BaseResponseDto('', result);
     }
 }

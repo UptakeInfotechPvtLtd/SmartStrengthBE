@@ -20,27 +20,30 @@ export class UserRepository extends Repository<UserEntity> {
     }
 
     async findUserByEmailWithRole(email: string): Promise<UserEntity | null> {
-        return this.createQueryBuilder('user')
-            .leftJoinAndSelect('user.role', 'role')
-            .leftJoinAndSelect('user.userBranches', 'userBranches')
-            .leftJoinAndSelect('userBranches.branch', 'branch')
-            .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
-            .getOne();
+        return handleError(() =>
+            this.createQueryBuilder('user')
+                .leftJoinAndSelect('user.role', 'role')
+                .leftJoinAndSelect('user.userBranches', 'userBranches')
+                .leftJoinAndSelect('userBranches.branch', 'branch')
+                .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
+                .getOne(),
+        );
     }
 
     async findUserByIdWithRole(userId: string): Promise<UserEntity | null> {
-        return this.findOne({
-            where: { id: userId },
-            relations: { role: true, userBranches: { branch: true } },
-        });
+        return handleError(() =>
+            this.findOne({
+                where: { id: userId },
+                relations: { role: true, userBranches: { branch: true } },
+            }),
+        );
     }
 
     async createUser(user: Partial<UserEntity>): Promise<UserEntity> {
-        return this.save(user);
+        return handleError(() => this.save(user));
     }
 
     async updateUser(user: UserEntity): Promise<UserEntity> {
-        return this.save(user);
+        return handleError(() => this.save(user));
     }
-
 }
