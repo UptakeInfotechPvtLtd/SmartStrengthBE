@@ -1,0 +1,16 @@
+# Existing entries
+node_modules/
+package-lock.json
+.env
+logs/*
+!logs/.gitkeep
+
+# Ignore uploaded files
+src/uploads/*
+!src/uploads/.gitkeep
+/src/tmp/*
+
+dist/
+
+saketham.sql
+.DS_Store# Public folder should be committed
