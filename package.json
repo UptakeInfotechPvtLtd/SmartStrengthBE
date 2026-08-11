@@ -21,10 +21,7 @@
         "migration:down": "typeorm-ts-node-commonjs migration:revert -d src/utils/database/db/connection/index.ts",
         "migration:down:all": "sh -c 'while typeorm-ts-node-commonjs migration:revert -d src/utils/database/db/connection/index.ts; do :; done'",
         "migration:show": "typeorm-ts-node-commonjs migration:show -d src/utils/database/db/connection/index.ts",
-        "seed": "ts-node -r tsconfig-paths/register src/utils/database/db/seeds/run-seeds.ts",
-        "generate-qr-key": "ts-node scripts/generate-qr-key.ts",
-        "test-qr-encryption": "ts-node scripts/test-qr-encryption.ts",
-        "test-invoice": "ts-node scripts/test-invoice-generation.ts"
+        "seed": "ts-node -r tsconfig-paths/register src/utils/database/db/seeds/run-seeds.ts"
     },
     "author": "",
     "license": "ISC",

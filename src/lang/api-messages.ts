@@ -307,21 +307,6 @@ export const messages = {
     checkoutRenderFailed: (reason: string) =>
         `Failed to render checkout page: ${reason}`,
 
-    // WhatsApp errors
-    whatsAppNumberUnavailable: 'This mobile number is not available on WhatsApp.',
-    whatsAppVerificationNotConfigured:
-        'WhatsApp contact verification is not configured.',
-    whatsAppVerificationUnavailable:
-        'Unable to verify the mobile number with WhatsApp. Please try again.',
-    whatsAppAuthenticationFailed:
-        'WhatsApp contact verification authentication failed.',
-    whatsAppInvalidResponse:
-        'Invalid response received from WhatsApp contact verification.',
-    whatsAppBookingNumberUnavailable:
-        'The booking mobile number is not available on WhatsApp.',
-    whatsAppBookingNotConfigured: 'WhatsApp booking confirmation is not configured.',
-    whatsAppTemplateApiFailed: (status: number) =>
-        `WhatsApp booking template API returned HTTP ${status}.`,
     indianMobileNumberInvalid:
         'Please enter a valid Indian mobile number in +91XXXXXXXXXX format.',
 
@@ -338,9 +323,6 @@ export const messages = {
     uploadTooManyFiles: 'Too many files. Only 1 file allowed.',
     fileUploadFailed: (reason: string) => `File upload error: ${reason}`,
     noFileUploaded: 'No file uploaded.',
-    qrApiKeyNotConfigured: 'QR verification API key is not configured.',
-    qrApiKeyRequired: 'Unauthorized: x-api-key header is required.',
-    qrApiKeyInvalid: 'Unauthorized: Invalid API key.',
     testSuccessful: 'test',
     dataFetchedSuccessfully: 'Data fetched successfully.',
     emailSendingDisabled: 'Email sending is disabled',
@@ -354,15 +336,6 @@ export const messages = {
     authorizationRequired: 'Authorization is required.',
     authorizationBearerRequired: 'Authorization should be "Bearer".',
     tokenParseFailed: 'Token could not be parsed.',
-    rabbitMqDisabled: 'RabbitMQ is disabled.',
-    qrEncryptionKeyMissing: 'QR_ENCRYPTION_KEY not found in environment variables',
-    qrEncryptionKeyInvalid:
-        'QR_ENCRYPTION_KEY must be 64 characters (32 bytes in hex)',
-    qrEncryptionFailed: (reason: string) => `QR encryption failed: ${reason}`,
-    qrInvalidOrTampered: 'Invalid or tampered QR code',
-    pdfKitNotInstalled:
-        'pdfkit package not installed. Run: npm install pdfkit @types/pdfkit',
-    pdfGenerationFailed: (reason: string) => `PDF generation failed: ${reason}`,
 
     // Promo code
     promoCodeCreatedSuccessfully: 'Promo code created successfully.',

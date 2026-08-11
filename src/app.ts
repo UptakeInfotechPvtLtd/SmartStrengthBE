@@ -14,10 +14,8 @@ import {
     getEnv,
     exceptionDispatchers,
     EmailQueue,
-    WhatsAppQueue,
     istResponseTimezone,
 } from './utils/';
-import { startCronJobs } from './utils/cron';
 import path from 'path';
 import { messages } from './lang/api-messages';
 
@@ -132,8 +130,6 @@ const server = http.createServer(app);
 Promise.all([connectDB()])
     .then(() => {
         void EmailQueue.startConsumer();
-        void WhatsAppQueue.startConsumer();
-        startCronJobs();
         server.listen(PORT, '0.0.0.0', () => {
             logger.info(`🚀 Server running at http://0.0.0.0:${PORT}/api/`);
         });

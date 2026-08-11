@@ -21,7 +21,6 @@ import {
     otpGenerator,
 } from '../utils';
 import { EmailService } from '../utils/email.service';
-import { WhatsAppContactService } from './whatsapp-contact.service';
 import {
     AdminChangePasswordBodyPayload,
     AdminChangePasswordParamsPayload,
@@ -49,8 +48,6 @@ interface RefreshTokenPayload extends jwt.JwtPayload {
 }
 
 export class AuthService {
-    private readonly whatsAppContactService = new WhatsAppContactService();
-
     constructor(
         private readonly userRepo: UserRepository,
         private readonly userRoleRepo: RoleRepository,
@@ -66,8 +63,6 @@ export class AuthService {
         if (existingUser) {
             throw new ConflictException(messages.userAlreadyRegistered);
         }
-
-        await this.whatsAppContactService.ensureNumberExists(body.mobileNumber);
 
         const userRole = await this.userRoleRepo.findRoleByName(Roles.User);
         if (!userRole) {

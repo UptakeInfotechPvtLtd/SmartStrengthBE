@@ -1,5 +1,5 @@
-import { ISendEmailParams } from '../../config';
 import type { Message } from 'amqplib';
+import { ISendEmailParams } from '../../config';
 import { EmailService } from '../email.service';
 import { logger } from '../log.util';
 import { RabbitMQConfig } from './rabbitmq.config';
@@ -9,8 +9,8 @@ export type EmailQueuePayload = ISendEmailParams;
 
 export class EmailQueue {
     static publishInBackground(payload: EmailQueuePayload): void {
-        void this.publish(payload).catch((error: any) => {
-            logger.error(`[RabbitMQ] background email publish failed: ${error?.message}`);
+        this.publish(payload).catch((error: Error) => {
+            logger.error(`[RabbitMQ] background email publish failed: ${error.message}`);
         });
     }
 
@@ -22,25 +22,18 @@ export class EmailQueue {
 
         try {
             const channel = await RabbitMQService.getChannel();
-            await channel.assertQueue(RabbitMQConfig.emailQueue, {
-                durable: true,
-            });
-
-            const sent = channel.sendToQueue(
+            await channel.assertQueue(RabbitMQConfig.emailQueue, { durable: true });
+            const published = channel.sendToQueue(
                 RabbitMQConfig.emailQueue,
                 Buffer.from(JSON.stringify(payload)),
-                {
-                    persistent: true,
-                    contentType: 'application/json',
-                },
+                { persistent: true, contentType: 'application/json' },
             );
 
-            if (!sent) {
+            if (!published) {
                 logger.warn('[RabbitMQ] email queue backpressure while publishing');
             }
         } catch (error: any) {
             logger.error(`[RabbitMQ] failed to publish email: ${error?.message}`);
-
             if (!RabbitMQConfig.fallbackToDirectEmail) {
                 throw error;
             }
@@ -58,9 +51,7 @@ export class EmailQueue {
 
         try {
             const channel = await RabbitMQService.getChannel();
-            await channel.assertQueue(RabbitMQConfig.emailQueue, {
-                durable: true,
-            });
+            await channel.assertQueue(RabbitMQConfig.emailQueue, { durable: true });
             channel.prefetch(RabbitMQConfig.prefetch);
 
             await channel.consume(RabbitMQConfig.emailQueue, async (message: Message | null) => {
@@ -70,27 +61,6 @@ export class EmailQueue {
 
                 try {
                     const payload = JSON.parse(message.content.toString()) as EmailQueuePayload;
-
-                    // Reconstruct Buffer objects in attachments after JSON deserialization
-                    if (payload.attachments && Array.isArray(payload.attachments)) {
-                        payload.attachments = payload.attachments.map((attachment: any) => {
-                            // Check if content is a serialized Buffer object
-                            if (
-                                attachment.content &&
-                                typeof attachment.content === 'object' &&
-                                attachment.content.type === 'Buffer' &&
-                                Array.isArray(attachment.content.data)
-                            ) {
-                                // Reconstruct Buffer from serialized form
-                                return {
-                                    ...attachment,
-                                    content: Buffer.from(attachment.content.data),
-                                };
-                            }
-                            return attachment;
-                        });
-                    }
-
                     await EmailService.sendEmail(payload);
                     channel.ack(message);
                 } catch (error: any) {

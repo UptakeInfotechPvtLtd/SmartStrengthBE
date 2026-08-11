@@ -20,12 +20,25 @@ export class BranchResponseDto {
         this.contactNumber = branch.contact_number;
         this.mapLink = branch.map_link;
         this.address = branch.address;
-        this.openingTime = branch.opening_time;
-        this.closingTime = branch.closing_time;
+        this.openingTime = this.formatTime(branch.opening_time);
+        this.closingTime = this.formatTime(branch.closing_time);
         this.branchImages = branch.branch_images || [];
         this.status = branch.status;
         this.createdAt = branch.created_at;
         this.updatedAt = branch.updated_at;
+    }
+
+    private formatTime(time: string | null): string | null {
+        if (!time) {
+            return null;
+        }
+
+        const [hourValue, minuteValue] = time.split(':');
+        const hour = Number(hourValue);
+        const suffix = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+
+        return `${displayHour}:${minuteValue} ${suffix}`;
     }
 }
 

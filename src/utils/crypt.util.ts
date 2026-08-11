@@ -105,47 +105,12 @@ export const generateTokens = async (tokenPayload: IJwtPayload) => {
 };
 
 /**
- * JWT SIGN for email verification / forgot password
- */
-export const jwtSignForEmailVerificationAndForgotPassword = (data: object) => {
-    return jwt.sign(
-        data,
-        process.env.JWT_SALT_FOR_EMAIL_VERIFICATION_AND_FORGOT_PASSWORD || 'secret',
-        {
-            algorithm: 'HS256',
-            expiresIn: parseInt(process.env.JWT_EXPIRES || '10000') * 1000,
-        },
-    );
-};
-
-/**
  * Verify token
  */
 export const jwtVerify = (token: string) => {
     return jwt.verify(token, process.env.JWT_SALT || 'secret', {
         algorithms: ['HS256'],
     });
-};
-
-/**
- * Verify token for email verification and forgot password
- */
-export const tokenVerifyForEmailVerificationAndForgotPassword = (token: string) => {
-    try {
-        const decodedToken = jwt.verify(
-            token,
-            process.env.JWT_SALT_FOR_EMAIL_VERIFICATION_AND_FORGOT_PASSWORD || 'secret',
-            { algorithms: ['HS256'] },
-        );
-
-        return decodedToken;
-    } catch (error: any) {
-        if (error.name === 'TokenExpiredError') {
-            throw new UnauthorizedException(messages.tokenExpires);
-        } else {
-            throw new UnauthorizedException(messages.invalidToken);
-        }
-    }
 };
 
 /**

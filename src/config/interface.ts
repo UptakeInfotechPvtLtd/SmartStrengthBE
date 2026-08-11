@@ -114,27 +114,3 @@ export interface IFileUploadInput {
     protocol: string;
     host: string;
 }
-
-// WhatsApp Interfaces
-export interface WhatsAppContactCheckResponse {
-    number: string;
-    exists: boolean;
-    whatsappId: string | null;
-}
-
-export interface WhatsAppBookingTemplateData {
-    customerName: string;
-    gameName: string;
-    bookingDate: string;
-    timeSlot: string;
-    playerCount: string;
-    amount: string;
-    bookingId: string;
-}
-
-export interface WhatsAppBookingQueuePayload {
-    phoneNumber: string;
-    vars: WhatsAppBookingTemplateData;
-    imageBase64: string;
-    attempts?: number;
-}

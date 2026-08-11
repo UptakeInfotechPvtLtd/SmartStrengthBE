@@ -25,8 +25,8 @@ export const loadEnv = () => {
     logger.log(`Loading ${envFilePath}`);
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     require('dotenv').config({ path: envFilePath, override: true });
-    // Keep all Date-based business rules, cron schedules, and TypeORM timestamp
-    // serialization aligned with the application's operating timezone.
+    // Keep Date-based business rules and TypeORM timestamp serialization
+    // aligned with the application's operating timezone.
     process.env.TZ = process.env.APP_TIMEZONE || 'Asia/Kolkata';
 };
 
