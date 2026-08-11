@@ -1,4 +1,4 @@
-import { AuthService, BranchService } from '../services';
+import { AuthService, BranchService, CommonService, UserService } from '../services';
 
 import {
     BranchRepository,
@@ -15,3 +15,5 @@ export const branchRepo = new BranchRepository(DbDataSource);
 
 export const authService = new AuthService(userRepo, roleRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
+export const commonService = new CommonService(roleRepo);
+export const userService = new UserService(userRepo, roleRepo, branchRepo);

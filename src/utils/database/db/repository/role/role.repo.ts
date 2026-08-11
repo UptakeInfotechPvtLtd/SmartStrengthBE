@@ -20,4 +20,8 @@ export class RoleRepository extends Repository<RoleEntity> {
             return role;
         });
     }
+
+    public async findAllRoles(): Promise<RoleEntity[]> {
+        return handleError(() => this.find({ order: { name: 'ASC' } }), []);
+    }
 }

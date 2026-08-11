@@ -31,6 +31,9 @@ export interface PerformanceMetrics {
 @Index('IDX_users_status', ['status'])
 @Index('IDX_users_deleted_at', ['deleted_at'])
 @Index('IDX_users_role', ['role'])
+@Index('IDX_users_full_name', ['full_name'])
+@Index('IDX_users_phone_no', ['phone_no'])
+@Index('IDX_users_created_at', ['created_at'])
 export class UserEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;

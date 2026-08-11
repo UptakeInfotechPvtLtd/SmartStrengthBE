@@ -1,4 +1,4 @@
-import { Brackets, DataSource, Repository } from 'typeorm';
+import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { BranchEntity } from '../../entity';
 import { FetchBranchesQueryPayload } from '../../../../../validations';
 import { getOffset } from '../../../../common.utils';
@@ -11,6 +11,10 @@ export class BranchRepository extends Repository<BranchEntity> {
 
     async findBranchById(id: string): Promise<BranchEntity | null> {
         return handleError(() => this.findOne({ where: { id } }));
+    }
+
+    async findActiveBranchesByIds(ids: string[]): Promise<BranchEntity[]> {
+        return handleError(() => this.find({ where: { id: In(ids), status: true } }), []);
     }
 
     async createBranch(branch: Partial<BranchEntity>): Promise<BranchEntity> {
