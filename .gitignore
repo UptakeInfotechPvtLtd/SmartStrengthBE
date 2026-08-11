@@ -6,6 +6,8 @@ logs/*
 !logs/.gitkeep
 
 # Ignore uploaded files
+uploads/*
+uploads/.gitkeep
 src/uploads/*
 !src/uploads/.gitkeep
 /src/tmp/*

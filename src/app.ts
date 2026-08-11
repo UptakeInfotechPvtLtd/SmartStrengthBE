@@ -73,7 +73,7 @@ app.use(istResponseTimezone);
 // -------------------------
 app.use(requestLogger);
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // -------------------------
 // Static Files (public folder) - Must come before routes

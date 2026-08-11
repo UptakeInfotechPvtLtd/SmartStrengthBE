@@ -102,6 +102,11 @@ export class UserService {
         );
     }
 
+    async deleteUser(params: ManagedUserIdParamsPayload, authUser: IJwtPayload): Promise<void> {
+        const user = await this.getAccessibleUser(params.id, authUser);
+        await this.userRepo.softDeleteUser(user.id);
+    }
+
     async getUserById(
         params: ManagedUserIdParamsPayload,
         authUser: IJwtPayload,

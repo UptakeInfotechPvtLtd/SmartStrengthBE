@@ -1,4 +1,4 @@
-import { CommonDropdownResponseDto, RoleDropdownResponseDto } from '../dto';
+import { CommonDropdownResponseDto, RoleDropdownResponseDto, UploadFileResponseDto } from '../dto';
 import { RoleRepository } from '../utils';
 
 export class CommonService {
@@ -12,5 +12,9 @@ export class CommonService {
     async getRoleDropdown(): Promise<RoleDropdownResponseDto> {
         const roles = await this.roleRepo.findAllRoles();
         return new RoleDropdownResponseDto(roles);
+    }
+
+    uploadFile(file: Express.Multer.File, baseUrl: string): UploadFileResponseDto {
+        return new UploadFileResponseDto(file, baseUrl);
     }
 }

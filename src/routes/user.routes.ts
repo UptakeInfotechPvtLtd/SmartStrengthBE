@@ -55,5 +55,11 @@ router.patch(
     validate(updateManagedUserStatusSchema),
     routeHandler(userController.updateUserStatus),
 );
+router.delete(
+    '/:id',
+    verifyToken(manageRoles),
+    validate(managedUserIdSchema),
+    routeHandler(userController.deleteUser),
+);
 
 export default router;

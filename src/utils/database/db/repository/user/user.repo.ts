@@ -50,6 +50,15 @@ export class UserRepository extends Repository<UserEntity> {
         return handleError(() => this.save(user));
     }
 
+    async softDeleteUser(userId: string): Promise<void> {
+        return handleError(async () => {
+            await this.createQueryBuilder()
+                .softDelete()
+                .where('id = :userId', { userId })
+                .execute();
+        });
+    }
+
     async listUsers(
         query: FetchUsersQueryPayload,
         allowedRoles: Roles[],
@@ -89,7 +98,7 @@ export class UserRepository extends Repository<UserEntity> {
                     queryBuilder.andWhere('role.id = :roleId', { roleId: query.roleId });
                 }
 
-                if (query.status) {
+                if (typeof query.status === 'boolean') {
                     queryBuilder.andWhere('user.status = :status', { status: query.status });
                 }
 

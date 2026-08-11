@@ -8,17 +8,11 @@ import { BadRequestException } from '../error';
 import { messages } from '../../lang/api-messages';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
-const ALLOWED_MIME_TYPES = [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'application/pdf',
-];
 
 // Storage configuration (disk)
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
-        const uploadPath = path.join(__dirname, '../../uploads');
+        const uploadPath = path.join(process.cwd(), 'uploads');
         if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
         }
@@ -31,24 +25,10 @@ const storage = multer.diskStorage({
     },
 });
 
-// File type filter
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(
-            new BadRequestException(
-                messages.invalidUploadFileType,
-            ),
-        );
-    }
-};
-
 // Multer upload middleware
 const upload = multer({
     storage,
     limits: { fileSize: MAX_FILE_SIZE },
-    fileFilter,
 }).single('file'); // Accept `file` field
 
 // Middleware wrapper
