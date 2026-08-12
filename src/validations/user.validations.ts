@@ -10,6 +10,20 @@ const optionalString = (message: string) =>
         .union([z.string({ message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
+const optionalPasswordSchema = z
+    .union([z.string({ message: validationMessages.user.passwordString }).trim(), z.null()])
+    .optional()
+    .transform((value) => {
+        if (value === null || value === '') return undefined;
+        return value;
+    })
+    .pipe(
+        z
+            .string()
+            .min(8, validationMessages.signUp.passwordMinLength)
+            .max(400, validationMessages.signUp.passwordMaxLength)
+            .optional(),
+    );
 const statusSchema = z
     .union([z.boolean(), z.enum(['true', 'false'])])
     .optional()
@@ -109,6 +123,12 @@ export const updateManagedUserSchema = {
         .strict(),
     body: z
         .object({
+            roleId: z
+                .string()
+                .refine((value) => uuidRegex.test(value), {
+                    message: validationMessages.user.roleIdInvalid,
+                })
+                .optional(),
             fullName: optionalString(validationMessages.user.fullNameRequired).pipe(
                 z.string().max(200, validationMessages.user.fullNameMaxLength).optional(),
             ),
@@ -133,6 +153,7 @@ export const updateManagedUserSchema = {
                 })
                 .optional(),
             performanceMetrics: performanceMetricsSchema.optional(),
+            password: optionalPasswordSchema,
             status: statusSchema,
         })
         .strict(),
@@ -171,6 +192,7 @@ export const updateProfileSchema = {
                 })
                 .optional(),
             performanceMetrics: performanceMetricsSchema.optional(),
+            password: optionalPasswordSchema,
         })
         .strict(),
 };

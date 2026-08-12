@@ -67,11 +67,16 @@ export class UserService {
         body: UpdateManagedUserBodyPayload,
         authUser: IJwtPayload,
     ): Promise<UserResponseDto> {
-        const user = await this.getAccessibleUser(params.id, authUser);
+        const user = await this.getUpdatableUser(params?.id, authUser);
         if (body.branchIds) {
             await this.ensureBranchesExist(body.branchIds);
         }
 
+        if (body.roleId !== undefined) {
+            const role = await this.getRole(body.roleId);
+            this.ensureCanUpdateRole(authUser?.roleName as Roles, role?.name as Roles);
+            user.role = role;
+        }
         if (body.fullName !== undefined) user.full_name = body.fullName;
         if (body.contactNumber !== undefined) user.phone_no = body.contactNumber;
         if (body.age !== undefined) user.age = body.age;
@@ -79,6 +84,7 @@ export class UserService {
         if (body.userType !== undefined) user.user_type = body.userType;
         if (body.performanceMetrics !== undefined)
             user.performance_metrics = body.performanceMetrics;
+        if (body.password !== undefined) user.password = await bcrypt.hash(body.password, 10);
         if (body.status !== undefined) user.status = body.status;
 
         const updatedUser = await this.userRepo.updateUser(user);
@@ -142,6 +148,7 @@ export class UserService {
         if (body.userType !== undefined) user.user_type = body.userType;
         if (body.performanceMetrics !== undefined)
             user.performance_metrics = body.performanceMetrics;
+        if (body.password !== undefined) user.password = await bcrypt.hash(body.password, 10);
 
         const updatedUser = await this.userRepo.updateUser(user);
         return new UserResponseDto(
@@ -189,6 +196,27 @@ export class UserService {
         return user;
     }
 
+    private async getUpdatableUser(userId: string, authUser: IJwtPayload): Promise<UserEntity> {
+        const user = await this.userRepo.findUserByIdWithRole(userId);
+        if (!user) {
+            throw new NotFoundException(messages.userNotFound);
+        }
+
+        const authRole = authUser?.roleName as Roles;
+        if (authRole === Roles.Admin) {
+            return user;
+        }
+
+        if (authRole === Roles.SubAdmin) {
+            if (user?.role?.name !== Roles.User) {
+                throw new UnauthorizedException(messages.subAdminCanOnlyUpdateNormalUser);
+            }
+            return user;
+        }
+
+        throw new UnauthorizedException(messages.cannotManageUserRole);
+    }
+
     private async getRole(roleId: string) {
         const role = await this.roleRepo.findRoleById(roleId);
         if (!role) {
@@ -215,6 +243,18 @@ export class UserService {
         if (!allowedRoles.includes(targetRole)) {
             throw new UnauthorizedException(messages.cannotCreateUserRole);
         }
+    }
+
+    private ensureCanUpdateRole(authRole: Roles, targetRole: Roles): void {
+        if (authRole === Roles.Admin) {
+            return;
+        }
+
+        if (authRole === Roles.SubAdmin && targetRole === Roles.User) {
+            return;
+        }
+
+        throw new UnauthorizedException(messages.cannotUpdateUserRole);
     }
 
     private validateCreatePayloadForRole(
