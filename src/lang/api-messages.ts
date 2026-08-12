@@ -209,7 +209,7 @@ export const messages = {
     bookingStatusUpdateNotAllowed: 'You are not allowed to update this booking status.',
 
     // Booking & Slot System
-    bookingCreatedSuccessfully: 'Booking created successfully. Please complete payment within 10 minutes.',
+    bookingCreatedSuccessfully: 'Booking created successfully.',
     bookingFetchedSuccessfully: 'Booking fetched successfully.',
     bookingsFetchedSuccessfully: 'Bookings fetched successfully.',
     bookingCancelledSuccessfully: 'Booking cancelled successfully.',
@@ -240,16 +240,11 @@ export const messages = {
     qrCodeVerifiedSuccessfully: 'QR code verified successfully',
     qrCodeGenerationFailed: 'Failed to generate QR code',
     bookingNotConfirmed: 'Booking is not confirmed',
-    paymentVerificationFailed: 'Payment verification failed.',
-    paymentCallbackSuccess: 'Payment verified successfully.',
-    paymentWebhookProcessed: 'Payment webhook processed successfully.',
-    invalidPaymentParameters: 'Missing or invalid payment parameters.',
     invalidWebhookSignature: 'Invalid webhook signature.',
     slotsFetchedSuccessfully: 'Slots fetched successfully.',
     availableSlotsFetchedSuccessfully: 'Available slots fetched successfully.',
     slotsCreatedSuccessfully: 'Slots created successfully for the date range.',
     slotLockExpired: 'Slot lock has expired. Please try booking again.',
-    bookingNotFoundForPayment: 'Booking not found for this payment.',
     unauthorizedToViewBooking: 'You are not authorized to view this booking.',
     unauthorizedToCancelBooking: 'Unauthorized to cancel this booking',
     bookingCompletedSuccessfully: 'Booking marked as completed successfully.',
@@ -277,7 +272,7 @@ export const messages = {
     rejectedBookingCannotApprove: 'Booking was already rejected — cannot approve',
     cancelledBookingCannotApprove: 'Booking is cancelled — cannot approve entry',
     expiredBookingCannotApprove: 'Booking is expired — cannot approve entry',
-    pendingBookingCannotApprove: 'Booking is pending payment — cannot approve entry',
+    pendingBookingCannotApprove: 'Booking is pending — cannot approve entry',
     completedBookingCannotReject: 'Entry already completed — cannot reject',
     entryAlreadyRejected: 'Entry is already rejected',
     entryManuallyApproved: 'Entry manually approved successfully',
@@ -303,24 +298,10 @@ export const messages = {
     faqsUpdatedSuccessfully: 'FAQs updated successfully.',
     faqDeletedSuccessfully: 'FAQ deleted successfully.',
 
-    // Payment errors
-    paymentOrderCreationFailed: (reason: string) =>
-        `Failed to create payment order: ${reason}`,
-    razorpayNotConfigured: 'Razorpay credentials not configured',
-    emptyPaymentCallback: 'Empty payment callback data',
-    paymentNotFoundDetails:
-        'The booking associated with this payment could not be found. Please contact support with your payment details.',
-    paymentVerificationDetails:
-        'We could not verify your payment. Please contact support if amount was deducted.',
     bookingAlreadyConfirmedDetails:
         'This booking has already been confirmed. Please check your email for booking details.',
     signatureMissing: 'Signature missing',
     bookingNotFoundOrInvalid: 'Booking not found or invalid',
-    paymentFetchFailed: (reason: string) => `Failed to fetch payment: ${reason}`,
-    paymentOrderFetchFailed: (reason: string) => `Failed to fetch order: ${reason}`,
-    refundCreationFailed: (reason: string) => `Failed to create refund: ${reason}`,
-    checkoutRenderFailed: (reason: string) =>
-        `Failed to render checkout page: ${reason}`,
 
     indianMobileNumberInvalid:
         'Please enter a valid Indian mobile number in +91XXXXXXXXXX format.',

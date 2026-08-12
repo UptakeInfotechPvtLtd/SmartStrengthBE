@@ -12,6 +12,7 @@ import {
     loadEnv,
     requestLogger,
     getEnv,
+    getEnvBoolean,
     exceptionDispatchers,
     EmailQueue,
     istResponseTimezone,
@@ -28,7 +29,9 @@ const PORT: number = Number(getEnv('BACKEND_PORT')) || 8000;
 // -------------------------
 // Global Middlewares
 // -------------------------
-app.use(cors());
+if (getEnvBoolean('CORS_ENABLED', true)) {
+    app.use(cors());
+}
 
 helmet({
     contentSecurityPolicy: {
@@ -38,13 +41,12 @@ helmet({
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'",
-                'https://checkout.razorpay.com',
             ],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", 'data:', 'https:'],
-            connectSrc: ["'self'", 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
-            frameSrc: ["'self'", 'https://api.razorpay.com'],
-            childSrc: ["'self'", 'https://api.razorpay.com'],
+            connectSrc: ["'self'"],
+            frameSrc: ["'self'"],
+            childSrc: ["'self'"],
             fontSrc: ["'self'", 'data:'],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],

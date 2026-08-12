@@ -1,12 +1,12 @@
 {
-    "name": "action-arena-gamezone-api",
+    "name": "SmartStrengthApi",
     "version": "1.0.0",
     "description": "Base setup for Express.js + TypeScript + pnpm",
     "main": "index.js",
     "scripts": {
         "dev": "nodemon --legacy-watch --watch src --ext ts --exec ts-node src/app.ts",
         "start": "ts-node src/app.ts",
-        "build": "tsc && cpx \"src/templates/**/*\" dist/templates",
+        "build": "tsc && cpy \"src/templates/**/*\" dist/templates",
         "type": "module",
         "lint": "eslint 'src/**/*.{ts,js}' --fix",
         "format": "prettier --write 'src/**/*.{ts,js,json}'",
@@ -29,7 +29,6 @@
         "node": "24.x"
     },
     "devDependencies": {
-        "@types/bcryptjs": "^3.0.0",
         "@types/compression": "^1.7.2",
         "@types/cookie-parser": "^1.4.10",
         "@types/cors": "^2.8.19",
@@ -42,7 +41,7 @@
         "@types/nodemailer": "^7.0.9",
         "@typescript-eslint/eslint-plugin": "^8.52.0",
         "@typescript-eslint/parser": "^8.52.0",
-        "cpx": "^1.5.0",
+        "cpy-cli": "^7.0.0",
         "cross-env": "^10.1.0",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
@@ -67,7 +66,7 @@
         "luxon": "^3.7.2",
         "moment": "^2.30.1",
         "multer": "^2.0.2",
-        "nodemailer": "^7.0.12",
+        "nodemailer": "^9.0.5",
         "pg": "^8.17.1",
         "redis": "^5.10.0",
         "reflect-metadata": "^0.2.2",
