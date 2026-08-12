@@ -8,11 +8,14 @@ const optionalString = (message: string) =>
         .union([z.string({ message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
-const statusSchema = z.preprocess((value) => {
-    if (value === 'true') return true;
-    if (value === 'false') return false;
-    return value;
-}, z.boolean({ message: validationMessages.common.statusBoolean }).optional());
+const statusSchema = z.preprocess(
+    (value) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value;
+    },
+    z.boolean({ message: validationMessages.common.statusBoolean }).optional(),
+);
 const branchIdsSchema = z
     .array(
         z.string().refine((value) => uuidRegex.test(value), {

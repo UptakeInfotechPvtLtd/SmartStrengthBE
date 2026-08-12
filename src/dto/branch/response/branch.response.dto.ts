@@ -14,18 +14,18 @@ export class BranchResponseDto {
     createdAt!: Date;
     updatedAt!: Date;
 
-    constructor(branch: BranchEntity) {
-        this.id = branch.id;
-        this.name = branch.name;
-        this.contactNumber = branch.contact_number;
-        this.mapLink = branch.map_link;
-        this.address = branch.address;
-        this.openingTime = this.formatTime(branch.opening_time);
-        this.closingTime = this.formatTime(branch.closing_time);
-        this.branchImages = branch.branch_images || [];
-        this.status = branch.status;
-        this.createdAt = branch.created_at;
-        this.updatedAt = branch.updated_at;
+    constructor(branch?: BranchEntity) {
+        this.id = branch?.id || '';
+        this.name = branch?.name || '';
+        this.contactNumber = branch?.contact_number || null;
+        this.mapLink = branch?.map_link || null;
+        this.address = branch?.address || null;
+        this.openingTime = this.formatTime(branch?.opening_time || null);
+        this.closingTime = this.formatTime(branch?.closing_time || null);
+        this.branchImages = branch?.branch_images || [];
+        this.status = branch?.status || BranchStatus.Active;
+        this.createdAt = branch?.created_at!;
+        this.updatedAt = branch?.updated_at!;
     }
 
     private formatTime(time: string | null): string | null {

@@ -9,7 +9,7 @@ export class SessionRepository extends Repository<SessionEntity> {
         super(SessionEntity, dataSource.createEntityManager());
     }
 
-    async findSessionById(id: string): Promise<SessionEntity | null> {
+    async findSessionById(id?: string): Promise<SessionEntity | null> {
         return handleError(() =>
             this.findOne({
                 where: { id },
@@ -26,7 +26,7 @@ export class SessionRepository extends Repository<SessionEntity> {
         return handleError(() => this.save(session));
     }
 
-    async softDeleteSession(sessionId: string): Promise<void> {
+    async softDeleteSession(sessionId?: string): Promise<void> {
         return handleError(async () => {
             await this.createQueryBuilder()
                 .softDelete()
@@ -40,7 +40,7 @@ export class SessionRepository extends Repository<SessionEntity> {
         branchIds: string[],
     ): Promise<SessionEntity> {
         return handleError(async () => {
-            await this.manager.delete(SessionBranchEntity, { session: { id: session.id } });
+            await this.manager.delete(SessionBranchEntity, { session: { id: session?.id } });
             session.sessionBranches = branchIds.map((branchId) =>
                 this.manager.create(SessionBranchEntity, {
                     session,

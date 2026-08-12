@@ -36,9 +36,7 @@ export const uploadSingleFile = (req: Request, res: Response, next: NextFunction
     upload(req, res, (err: any) => {
         if (err instanceof MulterError) {
             if (err.code === 'LIMIT_FILE_SIZE') {
-                return next(
-                    new BadRequestException(messages.uploadFileTooLarge),
-                );
+                return next(new BadRequestException(messages.uploadFileTooLarge));
             }
             if (err.code === 'LIMIT_UNEXPECTED_FILE') {
                 return next(new BadRequestException(messages.uploadUnexpectedField));

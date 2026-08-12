@@ -36,7 +36,7 @@ export class UserService {
         authUser: IJwtPayload,
     ): Promise<UserResponseDto> {
         const role = await this.getRole(body.roleId);
-        this.ensureCanCreateRole(authUser.roleName as Roles, role.name as Roles);
+        this.ensureCanCreateRole(authUser?.roleName as Roles, role?.name as Roles);
         this.validateCreatePayloadForRole(body, role.name as Roles);
         await this.ensureEmailUnique(body.email);
         await this.ensureBranchesExist(body.branchIds);
@@ -77,7 +77,8 @@ export class UserService {
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.performanceMetrics !== undefined) user.performance_metrics = body.performanceMetrics;
+        if (body.performanceMetrics !== undefined)
+            user.performance_metrics = body.performanceMetrics;
         if (body.status !== undefined) user.status = body.status;
 
         const updatedUser = await this.userRepo.updateUser(user);
@@ -86,7 +87,7 @@ export class UserService {
         }
 
         return new UserResponseDto(
-            (await this.userRepo.findUserByIdWithRole(updatedUser.id)) || updatedUser,
+            (await this.userRepo.findUserByIdWithRole(updatedUser?.id)) || updatedUser,
         );
     }
 
@@ -100,13 +101,13 @@ export class UserService {
 
         const updatedUser = await this.userRepo.updateUser(user);
         return new UserResponseDto(
-            (await this.userRepo.findUserByIdWithRole(updatedUser.id)) || updatedUser,
+            (await this.userRepo.findUserByIdWithRole(updatedUser?.id)) || updatedUser,
         );
     }
 
     async deleteUser(params: ManagedUserIdParamsPayload, authUser: IJwtPayload): Promise<void> {
         const user = await this.getAccessibleUser(params.id, authUser);
-        await this.userRepo.softDeleteUser(user.id);
+        await this.userRepo.softDeleteUser(user?.id);
     }
 
     async getUserById(
@@ -117,7 +118,7 @@ export class UserService {
     }
 
     async viewProfile(authUser: IJwtPayload): Promise<UserResponseDto> {
-        const user = await this.userRepo.findUserByIdWithRole(authUser.userId);
+        const user = await this.userRepo.findUserByIdWithRole(authUser?.userId);
         if (!user) {
             throw new NotFoundException(messages.userNotFound);
         }
@@ -129,7 +130,7 @@ export class UserService {
         body: UpdateProfileBodyPayload,
         authUser: IJwtPayload,
     ): Promise<UserResponseDto> {
-        const user = await this.userRepo.findUserByIdWithRole(authUser.userId);
+        const user = await this.userRepo.findUserByIdWithRole(authUser?.userId);
         if (!user) {
             throw new NotFoundException(messages.userNotFound);
         }
@@ -139,11 +140,12 @@ export class UserService {
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.performanceMetrics !== undefined) user.performance_metrics = body.performanceMetrics;
+        if (body.performanceMetrics !== undefined)
+            user.performance_metrics = body.performanceMetrics;
 
         const updatedUser = await this.userRepo.updateUser(user);
         return new UserResponseDto(
-            (await this.userRepo.findUserByIdWithRole(updatedUser.id)) || updatedUser,
+            (await this.userRepo.findUserByIdWithRole(updatedUser?.id)) || updatedUser,
         );
     }
 
@@ -151,7 +153,7 @@ export class UserService {
         query: FetchUsersQueryPayload,
         authUser: IJwtPayload,
     ): Promise<UserListResponseDto> {
-        const allowedRoles = this.getVisibleRoles(authUser.roleName as Roles);
+        const allowedRoles = this.getVisibleRoles(authUser?.roleName as Roles);
 
         if (query.roleId) {
             const role = await this.getRole(query.roleId);
@@ -179,7 +181,7 @@ export class UserService {
 
         if (
             !user.role ||
-            !this.getVisibleRoles(authUser.roleName as Roles).includes(user.role.name as Roles)
+            !this.getVisibleRoles(authUser?.roleName as Roles).includes(user?.role?.name as Roles)
         ) {
             throw new UnauthorizedException(messages.cannotManageUserRole);
         }
@@ -215,7 +217,10 @@ export class UserService {
         }
     }
 
-    private validateCreatePayloadForRole(body: CreateManagedUserBodyPayload, roleName: Roles): void {
+    private validateCreatePayloadForRole(
+        body: CreateManagedUserBodyPayload,
+        roleName: Roles,
+    ): void {
         if ([Roles.SubAdmin, Roles.Trainer].includes(roleName) && body.status === undefined) {
             throw new BadRequestException(messages.userStatusRequired);
         }

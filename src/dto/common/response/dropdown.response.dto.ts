@@ -20,7 +20,9 @@ export class CommonDropdownResponseDto {
     brancheStatus!: DropdownOptionDto[];
 
     constructor(roles: RoleEntity[]) {
-        this.roles = roles.map((role) => new DropdownOptionDto(this.formatLabel(role.name), role.id));
+        this.roles = roles
+            .filter((role) => Boolean(role?.id))
+            .map((role) => new DropdownOptionDto(this.formatLabel(role?.name || ''), role?.id));
         this.genders = this.createEnumOptions(Gender);
         this.userTypes = this.createEnumOptions(UserType);
         this.otpPurposes = this.createEnumOptions(OtpPurpose);
@@ -34,9 +36,7 @@ export class CommonDropdownResponseDto {
     }
 
     private formatLabel(value: string): string {
-        return value
-            .replace(/[-_]/g, ' ')
-            .replace(/\b\w/g, (character) => character.toUpperCase());
+        return value.replace(/[-_]/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
     }
 }
 
@@ -44,14 +44,12 @@ export class RoleDropdownResponseDto {
     roles!: DropdownOptionDto[];
 
     constructor(roles: RoleEntity[]) {
-        this.roles = roles.map(
-            (role) => new DropdownOptionDto(this.formatLabel(role.name), role.id),
-        );
+        this.roles = roles
+            .filter((role) => Boolean(role?.id))
+            .map((role) => new DropdownOptionDto(this.formatLabel(role?.name || ''), role?.id));
     }
 
     private formatLabel(value: string): string {
-        return value
-            .replace(/[-_]/g, ' ')
-            .replace(/\b\w/g, (character) => character.toUpperCase());
+        return value.replace(/[-_]/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
     }
 }

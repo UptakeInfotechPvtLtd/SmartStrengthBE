@@ -49,6 +49,8 @@ export const messages = {
         'Age, gender, user type, and performance metrics are required for normal user.',
     invalidBranchIds: 'One or more branch ids are invalid.',
     sessionNotFound: 'Session not found.',
+    packageNotFound: 'Package not found.',
+    packageAlreadyExists: 'Package already exists.',
     sessionBranchNotAssignedToSubAdmin:
         'Sub Admin can assign only branches already assigned to them.',
     adminCanOnlyChangeManagedUserPassword:
@@ -93,6 +95,12 @@ export const messages = {
     sessionDeletedSuccessfully: 'Session deleted successfully.',
     sessionFetchedSuccessfully: 'Session fetched successfully.',
     sessionsFetchedSuccessfully: 'Sessions fetched successfully.',
+    packageCreatedSuccessfully: 'Package created successfully.',
+    packageUpdatedSuccessfully: 'Package updated successfully.',
+    packageStatusUpdatedSuccessfully: 'Package status updated successfully.',
+    packageDeletedSuccessfully: 'Package deleted successfully.',
+    packageFetchedSuccessfully: 'Package fetched successfully.',
+    packagesFetchedSuccessfully: 'Packages fetched successfully.',
 
     // Venue
     venueAddedSuccessfully: 'Venue added successfully.',
@@ -238,10 +246,12 @@ export const messages = {
     slotLockFailed: 'Unable to lock slot. It may be locked by another user.',
     gameIsNotActive: 'Game is not active.',
     gameNotFoundOrInactive: 'Game not found or inactive',
-    invalidNumberOfPlayers: 'Number of players must be between minimum and maximum allowed for this game.',
+    invalidNumberOfPlayers:
+        'Number of players must be between minimum and maximum allowed for this game.',
     invalidNumberOfPlayersRange: (minPlayers: number, maxPlayers: number) =>
         `Number of players must be between ${minPlayers} and ${maxPlayers}`,
-    guestDetailsRequired: 'Guest details (name, email, phone) are required for non-authenticated users.',
+    guestDetailsRequired:
+        'Guest details (name, email, phone) are required for non-authenticated users.',
     qrCodeValid: 'QR code is valid.',
     qrCodeInvalid: 'Invalid QR code',
     qrCodeExpired: 'QR code has expired',
@@ -259,8 +269,7 @@ export const messages = {
     bookingCompletedSuccessfully: 'Booking marked as completed successfully.',
     userRoleNotFound: 'User role not found',
     userRoleNotFoundInDatabase: 'User role not found in database',
-    authenticatedUserInvalid:
-        'Authenticated user information is invalid. Please log in again.',
+    authenticatedUserInvalid: 'Authenticated user information is invalid. Please log in again.',
     slotBlockedOrClosed: 'Slot is blocked or closed by admin',
     slotDurationConfigMismatch: 'Slot duration does not match any game configuration',
     slotAlreadyStarted: 'Cannot book a slot that has already started or is in the past',
@@ -312,8 +321,7 @@ export const messages = {
     signatureMissing: 'Signature missing',
     bookingNotFoundOrInvalid: 'Booking not found or invalid',
 
-    indianMobileNumberInvalid:
-        'Please enter a valid Indian mobile number in +91XXXXXXXXXX format.',
+    indianMobileNumberInvalid: 'Please enter a valid Indian mobile number in +91XXXXXXXXXX format.',
 
     // Authorization and middleware
     authTokenRequired: 'Unauthorized: No token provided',
@@ -321,8 +329,7 @@ export const messages = {
     accessDenied: 'Forbidden: Access denied',
     invalidAuthToken: 'Forbidden: Invalid token',
     fileRequired: 'File is required',
-    invalidUploadFileType:
-        'Invalid file type. Only supported image and video files are allowed.',
+    invalidUploadFileType: 'Invalid file type. Only supported image and video files are allowed.',
     uploadFileTooLarge: 'File is too large. Maximum allowed size is 100 MB.',
     uploadUnexpectedField: 'Unexpected field name. Use "file" field.',
     uploadTooManyFiles: 'Too many files. Only 1 file allowed.',
@@ -500,6 +507,25 @@ export const validationMessages = {
         branchIdInvalid: 'Branch id must be a valid UUID.',
         branchIdsRequired: 'At least one branch id is required.',
         branchIdsUnique: 'Branch ids must be unique.',
+        searchString: 'Search must be a string.',
+        searchMaxLength: 'Search cannot exceed 255 characters.',
+    },
+    package: {
+        packageIdInvalid: 'Package id must be a valid UUID.',
+        packageNameRequired: 'Package name is required.',
+        packageNameMaxLength: 'Package name cannot exceed 150 characters.',
+        priceNumber: 'Price must be a number.',
+        priceMin: 'Price cannot be negative.',
+        numberOfSessionsNumber: 'Number of sessions must be a number.',
+        numberOfSessionsInteger: 'Number of sessions must be an integer.',
+        numberOfSessionsMin: 'Number of sessions must be at least 1.',
+        validityInDaysNumber: 'Validity in days must be a number.',
+        validityInDaysInteger: 'Validity in days must be an integer.',
+        validityInDaysMin: 'Validity in days must be at least 1.',
+        bestForRequired: 'Best for is required.',
+        bestForMaxLength: 'Best for cannot exceed 255 characters.',
+        descriptionString: 'Description must be a string.',
+        descriptionMaxLength: 'Description cannot exceed 1000 characters.',
         searchString: 'Search must be a string.',
         searchMaxLength: 'Search cannot exceed 255 characters.',
     },

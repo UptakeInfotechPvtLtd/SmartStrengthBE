@@ -13,21 +13,21 @@ export class SessionResponseDto {
     createdAt!: Date;
     updatedAt!: Date;
 
-    constructor(session: SessionEntity) {
-        this.id = session.id;
-        this.sessionName = session.session_name;
-        this.price = Number(session.price);
-        this.duration = session.duration;
-        this.description = session.description;
+    constructor(session?: SessionEntity) {
+        this.id = session?.id || '';
+        this.sessionName = session?.session_name || '';
+        this.price = Number(session?.price || 0);
+        this.duration = session?.duration || 0;
+        this.description = session?.description || null;
         this.branches =
-            session.sessionBranches
+            session?.sessionBranches
                 ?.map((sessionBranch) =>
-                    sessionBranch.branch ? new BranchResponseDto(sessionBranch.branch) : null,
+                    sessionBranch?.branch ? new BranchResponseDto(sessionBranch?.branch) : null,
                 )
                 .filter((branch): branch is BranchResponseDto => Boolean(branch)) || [];
-        this.status = session.status;
-        this.createdAt = session.created_at;
-        this.updatedAt = session.updated_at;
+        this.status = session?.status || false;
+        this.createdAt = session?.created_at!;
+        this.updatedAt = session?.updated_at!;
     }
 }
 

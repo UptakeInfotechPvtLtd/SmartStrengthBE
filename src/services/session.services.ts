@@ -42,7 +42,7 @@ export class SessionService {
         });
 
         return new SessionResponseDto(
-            (await this.sessionRepo.findSessionById(session.id)) || session,
+            (await this.sessionRepo.findSessionById(session?.id)) || session,
         );
     }
 
@@ -51,7 +51,7 @@ export class SessionService {
         body: UpdateSessionBodyPayload,
         authUser: IJwtPayload,
     ): Promise<SessionResponseDto> {
-        const session = await this.getSession(params.id);
+        const session = await this.getSession(params?.id);
         if (body.branchIds) {
             await this.ensureBranchesAllowed(body.branchIds, authUser);
         }
@@ -68,7 +68,7 @@ export class SessionService {
         }
 
         return new SessionResponseDto(
-            (await this.sessionRepo.findSessionById(updatedSession.id)) || updatedSession,
+            (await this.sessionRepo.findSessionById(updatedSession?.id)) || updatedSession,
         );
     }
 
@@ -76,19 +76,19 @@ export class SessionService {
         params: SessionIdParamsPayload,
         body: UpdateSessionStatusBodyPayload,
     ): Promise<SessionResponseDto> {
-        const session = await this.getSession(params.id);
+        const session = await this.getSession(params?.id);
         session.status = body.status;
 
         return new SessionResponseDto(await this.sessionRepo.updateSession(session));
     }
 
     async deleteSession(params: SessionIdParamsPayload): Promise<void> {
-        const session = await this.getSession(params.id);
-        await this.sessionRepo.softDeleteSession(session.id);
+        const session = await this.getSession(params?.id);
+        await this.sessionRepo.softDeleteSession(session?.id);
     }
 
     async getSessionById(params: SessionIdParamsPayload): Promise<SessionResponseDto> {
-        return new SessionResponseDto(await this.getSession(params.id));
+        return new SessionResponseDto(await this.getSession(params?.id));
     }
 
     async listSessions(query: FetchSessionsQueryPayload): Promise<SessionListResponseDto> {
@@ -101,7 +101,7 @@ export class SessionService {
         );
     }
 
-    private async getSession(id: string): Promise<SessionEntityLike> {
+    private async getSession(id?: string): Promise<SessionEntityLike> {
         const session = await this.sessionRepo.findSessionById(id);
         if (!session) {
             throw new NotFoundException(messages.sessionNotFound);
@@ -110,20 +110,17 @@ export class SessionService {
         return session;
     }
 
-    private async ensureBranchesAllowed(
-        branchIds: string[],
-        authUser: IJwtPayload,
-    ): Promise<void> {
+    private async ensureBranchesAllowed(branchIds: string[], authUser: IJwtPayload): Promise<void> {
         const branches = await this.branchRepo.findActiveBranchesByIds(branchIds);
         if (branches.length !== new Set(branchIds).size) {
             throw new BadRequestException(messages.invalidBranchIds);
         }
 
-        if (authUser.roleName !== Roles.SubAdmin) {
+        if (authUser?.roleName !== Roles.SubAdmin) {
             return;
         }
 
-        const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+        const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser?.userId);
         const hasUnauthorizedBranch = branchIds.some(
             (branchId) => !assignedBranchIds.includes(branchId),
         );
@@ -143,6 +140,7 @@ export class SessionService {
     }
 }
 
-type SessionEntityLike = Awaited<ReturnType<SessionRepository['findSessionById']>> extends infer T
-    ? NonNullable<T>
-    : never;
+type SessionEntityLike =
+    Awaited<ReturnType<SessionRepository['findSessionById']>> extends infer T
+        ? NonNullable<T>
+        : never;

@@ -23,7 +23,7 @@ const statusSchema = z
             return false;
         }
 
-            return value;
+        return value;
     });
 const performanceMetricsSchema = z
     .object({
@@ -43,9 +43,10 @@ const performanceMetricsSchema = z
             50,
             validationMessages.signUp.performanceMetricMaxLength,
         ),
-        bodyFatPercentage: requiredString(
-            validationMessages.signUp.bodyFatPercentageRequired,
-        ).max(50, validationMessages.signUp.performanceMetricMaxLength),
+        bodyFatPercentage: requiredString(validationMessages.signUp.bodyFatPercentageRequired).max(
+            50,
+            validationMessages.signUp.performanceMetricMaxLength,
+        ),
     })
     .strict();
 
@@ -266,9 +267,12 @@ export const adminUpdateUserSchema = {
         .strict(),
     body: z
         .object({
-            roleId: z.string().refine((val) => uuidRegex.test(val), {
-                message: profile.roleIdInvalid,
-            }).optional(),
+            roleId: z
+                .string()
+                .refine((val) => uuidRegex.test(val), {
+                    message: profile.roleIdInvalid,
+                })
+                .optional(),
             fullName: optionalString(validationMessages.signUp.fullNameRequired).pipe(
                 z.string().max(200, validationMessages.signUp.fullNameMaxLength).optional(),
             ),

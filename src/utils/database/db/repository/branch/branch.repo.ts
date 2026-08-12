@@ -10,7 +10,7 @@ export class BranchRepository extends Repository<BranchEntity> {
         super(BranchEntity, dataSource.createEntityManager());
     }
 
-    async findBranchById(id: string, assignedUserId?: string): Promise<BranchEntity | null> {
+    async findBranchById(id?: string, assignedUserId?: string): Promise<BranchEntity | null> {
         return handleError(() => {
             const queryBuilder = this.createQueryBuilder('branch').where('branch.id = :id', { id });
 
@@ -43,55 +43,61 @@ export class BranchRepository extends Repository<BranchEntity> {
         return handleError(() => this.softRemove(branch));
     }
 
-    async listBranches(query: FetchBranchesQueryPayload, assignedUserId?: string): Promise<{
+    async listBranches(
+        query: FetchBranchesQueryPayload,
+        assignedUserId?: string,
+    ): Promise<{
         branches: BranchEntity[];
         total: number;
         page: number;
         pageSize: number;
         offset: number;
     }> {
-        return handleError(async () => {
-            const { page, pageSize, offset, limit } = getOffset(query);
-            const queryBuilder = this.createQueryBuilder('branch');
+        return handleError(
+            async () => {
+                const { page, pageSize, offset, limit } = getOffset(query);
+                const queryBuilder = this.createQueryBuilder('branch');
 
-            if (assignedUserId) {
+                if (assignedUserId) {
+                    queryBuilder
+                        .innerJoin('branch.userBranches', 'userBranch')
+                        .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
+                }
+
+                if (query.search) {
+                    queryBuilder.andWhere(
+                        new Brackets((qb) => {
+                            qb.where('branch.name ILIKE :search', { search: `%${query.search}%` })
+                                .orWhere('branch.contact_number ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('branch.address ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                });
+                        }),
+                    );
+                }
+
+                if (query.status) {
+                    queryBuilder.andWhere('branch.status = :status', { status: query.status });
+                }
+
                 queryBuilder
-                    .innerJoin('branch.userBranches', 'userBranch')
-                    .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
-            }
+                    .orderBy(`branch.${query.orderBy || 'created_at'}`, query.order || 'DESC')
+                    .skip(offset)
+                    .take(limit);
 
-            if (query.search) {
-                queryBuilder.andWhere(
-                    new Brackets((qb) => {
-                        qb.where('branch.name ILIKE :search', { search: `%${query.search}%` })
-                            .orWhere('branch.contact_number ILIKE :search', {
-                                search: `%${query.search}%`,
-                            })
-                            .orWhere('branch.address ILIKE :search', {
-                                search: `%${query.search}%`,
-                            });
-                    }),
-                );
-            }
+                const [branches, total] = await queryBuilder.getManyAndCount();
 
-            if (query.status) {
-                queryBuilder.andWhere('branch.status = :status', { status: query.status });
-            }
-
-            queryBuilder
-                .orderBy(`branch.${query.orderBy || 'created_at'}`, query.order || 'DESC')
-                .skip(offset)
-                .take(limit);
-
-            const [branches, total] = await queryBuilder.getManyAndCount();
-
-            return { branches, total, page, pageSize, offset };
-        }, {
-            branches: [],
-            total: 0,
-            page: Number(query.page) || 1,
-            pageSize: Number(query.pageSize) || 10,
-            offset: 0,
-        });
+                return { branches, total, page, pageSize, offset };
+            },
+            {
+                branches: [],
+                total: 0,
+                page: Number(query.page) || 1,
+                pageSize: Number(query.pageSize) || 10,
+                offset: 0,
+            },
+        );
     }
 }

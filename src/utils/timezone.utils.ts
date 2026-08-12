@@ -5,9 +5,7 @@ export const APP_TIMEZONE = 'Asia/Kolkata';
 /** Format an instant for API output as ISO-8601 in IST (+05:30). */
 export const toISTISOString = (date: Date): string => {
     const istOffsetMilliseconds = 5.5 * 60 * 60 * 1000;
-    return new Date(date.getTime() + istOffsetMilliseconds)
-        .toISOString()
-        .replace('Z', '+05:30');
+    return new Date(date.getTime() + istOffsetMilliseconds).toISOString().replace('Z', '+05:30');
 };
 
 const transformDatesToIST = (value: any): any => {

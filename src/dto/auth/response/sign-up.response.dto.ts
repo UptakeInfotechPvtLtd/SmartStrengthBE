@@ -18,21 +18,21 @@ export class SignUpResponseDto {
     role!: RoleResponse | null;
 
     constructor(
-        user: UserEntity,
+        user?: UserEntity,
         accessToken: string | null = null,
         refreshToken: string | null = null,
     ) {
-        this.id = user?.id;
-        this.fullName = user?.full_name;
-        this.email = user?.email;
-        this.mobileNumber = user?.phone_no;
-        this.age = user?.age;
-        this.gender = user?.gender;
-        this.userType = user?.user_type;
+        this.id = user?.id || '';
+        this.fullName = user?.full_name || null;
+        this.email = user?.email || '';
+        this.mobileNumber = user?.phone_no || null;
+        this.age = user?.age || null;
+        this.gender = user?.gender || null;
+        this.userType = user?.user_type || null;
         this.branchIds =
             user?.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
-        this.performanceMetrics = user?.performance_metrics;
-        this.isTermsAgreed = user?.is_terms_agreed;
+        this.performanceMetrics = user?.performance_metrics || null;
+        this.isTermsAgreed = user?.is_terms_agreed || false;
 
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;

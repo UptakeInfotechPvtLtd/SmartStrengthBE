@@ -33,7 +33,7 @@ export class UserRepository extends Repository<UserEntity> {
         );
     }
 
-    async findUserByIdWithRole(userId: string): Promise<UserEntity | null> {
+    async findUserByIdWithRole(userId?: string): Promise<UserEntity | null> {
         return handleError(() =>
             this.findOne({
                 where: { id: userId },
@@ -50,7 +50,7 @@ export class UserRepository extends Repository<UserEntity> {
         return handleError(() => this.save(user));
     }
 
-    async softDeleteUser(userId: string): Promise<void> {
+    async softDeleteUser(userId?: string): Promise<void> {
         return handleError(async () => {
             await this.createQueryBuilder()
                 .softDelete()
@@ -123,7 +123,7 @@ export class UserRepository extends Repository<UserEntity> {
 
     async updateUserBranches(user: UserEntity, branchIds: string[]): Promise<UserEntity> {
         return handleError(async () => {
-            await this.manager.delete(UserBranchEntity, { user: { id: user.id } });
+            await this.manager.delete(UserBranchEntity, { user: { id: user?.id } });
             user.userBranches = branchIds.map((branchId) =>
                 this.manager.create(UserBranchEntity, {
                     user,
@@ -138,7 +138,7 @@ export class UserRepository extends Repository<UserEntity> {
         return handleError(() => this.find({ where: { id: In(userIds) } }), []);
     }
 
-    async findAssignedBranchIds(userId: string): Promise<string[]> {
+    async findAssignedBranchIds(userId?: string): Promise<string[]> {
         return handleError(async () => {
             const userBranches = await this.manager.find(UserBranchEntity, {
                 where: { user: { id: userId } },

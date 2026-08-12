@@ -32,7 +32,7 @@ export class BranchService {
         params: BranchIdParamsPayload,
         body: UpdateBranchBodyPayload,
     ): Promise<BranchResponseDto> {
-        const branch = await this.getActiveBranch(params.id);
+        const branch = await this.getActiveBranch(params?.id);
 
         if (body.name !== undefined) branch.name = body.name;
         if (body.contactNumber !== undefined) branch.contact_number = body.contactNumber;
@@ -50,14 +50,14 @@ export class BranchService {
         params: BranchIdParamsPayload,
         body: UpdateBranchStatusBodyPayload,
     ): Promise<BranchResponseDto> {
-        const branch = await this.getActiveBranch(params.id);
+        const branch = await this.getActiveBranch(params?.id);
         branch.status = body.status;
 
         return new BranchResponseDto(await this.branchRepo.updateBranch(branch));
     }
 
     async deleteBranch(params: BranchIdParamsPayload): Promise<void> {
-        const branch = await this.getActiveBranch(params.id);
+        const branch = await this.getActiveBranch(params?.id);
         await this.branchRepo.softDeleteBranch(branch);
     }
 
@@ -65,7 +65,7 @@ export class BranchService {
         params: BranchIdParamsPayload,
         authUser: IJwtPayload,
     ): Promise<BranchResponseDto> {
-        return new BranchResponseDto(await this.getActiveBranch(params.id, authUser));
+        return new BranchResponseDto(await this.getActiveBranch(params?.id, authUser));
     }
 
     async listBranches(
@@ -84,7 +84,7 @@ export class BranchService {
         );
     }
 
-    private async getActiveBranch(id: string, authUser?: IJwtPayload) {
+    private async getActiveBranch(id?: string, authUser?: IJwtPayload) {
         const branch = await this.branchRepo.findBranchById(id, this.getAssignedUserId(authUser));
         if (!branch) {
             throw new NotFoundException(messages.branchNotFound);
@@ -98,8 +98,8 @@ export class BranchService {
             return undefined;
         }
 
-        return [Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)
-            ? authUser.userId
+        return [Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)
+            ? authUser?.userId
             : undefined;
     }
 }

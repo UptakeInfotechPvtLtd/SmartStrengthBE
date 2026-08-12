@@ -64,7 +64,10 @@ export class AuthController {
     }
 
     async adminChangePassword(
-        req: IAuthenticatedRequest<AdminChangePasswordParamsPayload, AdminChangePasswordBodyPayload>,
+        req: IAuthenticatedRequest<
+            AdminChangePasswordParamsPayload,
+            AdminChangePasswordBodyPayload
+        >,
     ) {
         const result = await this.authService.adminChangePassword(req.params, req.body);
         return new BaseResponseDto(messages.passwordChangedSuccessfully, result);

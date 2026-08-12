@@ -5,9 +5,9 @@ export class RoleResponse {
     id!: string;
     name!: string;
 
-    constructor(role: RoleEntity) {
-        this.id = role?.id;
-        this.name = role?.name;
+    constructor(role?: RoleEntity) {
+        this.id = role?.id || '';
+        this.name = role?.name || '';
     }
 }
 
@@ -28,11 +28,11 @@ export class AddUserResponseDto {
     createdAt!: Date;
     updatedAt!: Date;
 
-    constructor(user: UserEntity) {
-        this.id = user?.id;
+    constructor(user?: UserEntity) {
+        this.id = user?.id || '';
         this.fullName = user?.full_name ?? null;
         this.mobileNumber = user?.phone_no ?? null;
-        this.email = user?.email;
+        this.email = user?.email || '';
         this.age = user?.age ?? null;
         this.gender = user?.gender ?? null;
         this.userType = user?.user_type ?? null;
@@ -41,9 +41,9 @@ export class AddUserResponseDto {
         this.performanceMetrics = user?.performance_metrics ?? null;
         this.isTermsAgreed = user?.is_terms_agreed ?? false;
         this.isEmailVerified = user?.is_email_verified ?? true;
-        this.status = user?.status;
+        this.status = user?.status || false;
         this.role = user?.role ? new RoleResponse(user?.role) : null;
-        this.createdAt = user?.created_at;
-        this.updatedAt = user?.updated_at;
+        this.createdAt = user?.created_at!;
+        this.updatedAt = user?.updated_at!;
     }
 }

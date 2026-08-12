@@ -19,11 +19,7 @@ export class ApiErrorResponseDto {
     timestamp!: Date;
     path?: string;
 
-    constructor(
-        message: string,
-        error: string | object = 'Bad Request',
-        path?: string,
-    ) {
+    constructor(message: string, error: string | object = 'Bad Request', path?: string) {
         this.success = false;
         this.message = message;
         this.error = error;

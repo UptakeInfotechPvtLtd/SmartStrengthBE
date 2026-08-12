@@ -33,9 +33,7 @@ const CORS_ORIGIN = getEnv('CORS_ORIGIN', getEnv('FRONTEND_URL', '*'));
 // -------------------------
 app.use(
     cors({
-        origin: CORS_ENABLED
-            ? CORS_ORIGIN.split(',').map((origin) => origin.trim())
-            : true,
+        origin: CORS_ENABLED ? CORS_ORIGIN.split(',').map((origin) => origin.trim()) : true,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
@@ -46,11 +44,7 @@ helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "'unsafe-eval'",
-            ],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", 'data:', 'https:'],
             connectSrc: ["'self'"],

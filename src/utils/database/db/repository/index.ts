@@ -3,3 +3,4 @@ export * from './user';
 export * from './black-list-token';
 export * from './branch';
 export * from './session';
+export * from './package';
