@@ -50,7 +50,9 @@ export class UserService {
             gender: role.name === Roles.User ? body.gender! : null,
             user_type: role.name === Roles.User ? body.userType! : null,
             performance_metrics: role.name === Roles.User ? body.performanceMetrics! : null,
-            status: role.name === Roles.SubAdmin ? body.status! : true,
+            status: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
+                ? body.status!
+                : true,
             is_email_verified: true,
             is_terms_agreed: role.name === Roles.User,
             role,
@@ -214,7 +216,7 @@ export class UserService {
     }
 
     private validateCreatePayloadForRole(body: CreateManagedUserBodyPayload, roleName: Roles): void {
-        if (roleName === Roles.SubAdmin && body.status === undefined) {
+        if ([Roles.SubAdmin, Roles.Trainer].includes(roleName) && body.status === undefined) {
             throw new BadRequestException(messages.userStatusRequired);
         }
 

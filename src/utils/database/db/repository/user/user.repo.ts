@@ -137,4 +137,17 @@ export class UserRepository extends Repository<UserEntity> {
     async findUsersByIds(userIds: string[]): Promise<UserEntity[]> {
         return handleError(() => this.find({ where: { id: In(userIds) } }), []);
     }
+
+    async findAssignedBranchIds(userId: string): Promise<string[]> {
+        return handleError(async () => {
+            const userBranches = await this.manager.find(UserBranchEntity, {
+                where: { user: { id: userId } },
+                relations: { branch: true },
+            });
+
+            return userBranches
+                .map((userBranch) => userBranch.branch?.id)
+                .filter((branchId): branchId is string => Boolean(branchId));
+        }, []);
+    }
 }

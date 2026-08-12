@@ -1,4 +1,4 @@
-import { Gender, OtpPurpose, UserType } from '../../../config';
+import { BranchStatus, Gender, OtpPurpose, UserType } from '../../../config';
 import { RoleEntity } from '../../../utils';
 
 export class DropdownOptionDto {
@@ -16,12 +16,15 @@ export class CommonDropdownResponseDto {
     genders!: DropdownOptionDto[];
     userTypes!: DropdownOptionDto[];
     otpPurposes!: DropdownOptionDto[];
+    branchStatuses!: DropdownOptionDto[];
+    brancheStatus!: DropdownOptionDto[];
 
     constructor(roles: RoleEntity[]) {
         this.roles = roles.map((role) => new DropdownOptionDto(this.formatLabel(role.name), role.id));
         this.genders = this.createEnumOptions(Gender);
         this.userTypes = this.createEnumOptions(UserType);
         this.otpPurposes = this.createEnumOptions(OtpPurpose);
+        this.branchStatuses = this.createEnumOptions(BranchStatus);
     }
 
     private createEnumOptions(enumObject: Record<string, string>): DropdownOptionDto[] {

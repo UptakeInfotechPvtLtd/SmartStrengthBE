@@ -8,6 +8,8 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { BranchStatus } from '../../../../config/enum';
+import { SessionBranchEntity } from './session-branch.entity';
 import { UserBranchEntity } from './user-branch.entity';
 
 @Entity('Branches')
@@ -40,8 +42,8 @@ export class BranchEntity {
     @Column({ type: 'jsonb', nullable: true, default: () => "'[]'" })
     branch_images!: string[];
 
-    @Column({ type: 'boolean', default: true })
-    status!: boolean;
+    @Column({ type: 'varchar', length: 30, default: BranchStatus.Active })
+    status!: BranchStatus;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at!: Date;
@@ -54,4 +56,9 @@ export class BranchEntity {
 
     @OneToMany(() => UserBranchEntity, (userBranch) => userBranch.branch, { cascade: true })
     userBranches!: UserBranchEntity[];
+
+    @OneToMany(() => SessionBranchEntity, (sessionBranch) => sessionBranch.branch, {
+        cascade: true,
+    })
+    sessionBranches!: SessionBranchEntity[];
 }

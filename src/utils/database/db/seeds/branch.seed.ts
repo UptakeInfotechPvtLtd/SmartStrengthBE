@@ -1,5 +1,6 @@
 import { DbDataSource } from '../connection';
 import { BranchEntity } from '../entity';
+import { BranchStatus } from '../../../../config';
 
 export async function seedBranches() {
     const branchRepo = DbDataSource.getRepository(BranchEntity);
@@ -13,7 +14,7 @@ export async function seedBranches() {
             opening_time: '09:00',
             closing_time: '18:00',
             branch_images: ['https://example.com/branch-ahmedabad-1.jpg'],
-            status: true,
+            status: BranchStatus.Active,
         },
         {
             name: 'Surat Training Branch',
@@ -23,7 +24,7 @@ export async function seedBranches() {
             opening_time: '10:00',
             closing_time: '19:00',
             branch_images: ['https://example.com/branch-surat-1.jpg'],
-            status: true,
+            status: BranchStatus.Active,
         },
     ];
 

@@ -1,6 +1,7 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { BranchEntity } from '../../entity';
 import { FetchBranchesQueryPayload } from '../../../../../validations';
+import { BranchStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
 
@@ -9,12 +10,25 @@ export class BranchRepository extends Repository<BranchEntity> {
         super(BranchEntity, dataSource.createEntityManager());
     }
 
-    async findBranchById(id: string): Promise<BranchEntity | null> {
-        return handleError(() => this.findOne({ where: { id } }));
+    async findBranchById(id: string, assignedUserId?: string): Promise<BranchEntity | null> {
+        return handleError(() => {
+            const queryBuilder = this.createQueryBuilder('branch').where('branch.id = :id', { id });
+
+            if (assignedUserId) {
+                queryBuilder
+                    .innerJoin('branch.userBranches', 'userBranch')
+                    .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
+            }
+
+            return queryBuilder.getOne();
+        });
     }
 
     async findActiveBranchesByIds(ids: string[]): Promise<BranchEntity[]> {
-        return handleError(() => this.find({ where: { id: In(ids), status: true } }), []);
+        return handleError(
+            () => this.find({ where: { id: In(ids), status: BranchStatus.Active } }),
+            [],
+        );
     }
 
     async createBranch(branch: Partial<BranchEntity>): Promise<BranchEntity> {
@@ -29,7 +43,7 @@ export class BranchRepository extends Repository<BranchEntity> {
         return handleError(() => this.softRemove(branch));
     }
 
-    async listBranches(query: FetchBranchesQueryPayload): Promise<{
+    async listBranches(query: FetchBranchesQueryPayload, assignedUserId?: string): Promise<{
         branches: BranchEntity[];
         total: number;
         page: number;
@@ -39,6 +53,12 @@ export class BranchRepository extends Repository<BranchEntity> {
         return handleError(async () => {
             const { page, pageSize, offset, limit } = getOffset(query);
             const queryBuilder = this.createQueryBuilder('branch');
+
+            if (assignedUserId) {
+                queryBuilder
+                    .innerJoin('branch.userBranches', 'userBranch')
+                    .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
+            }
 
             if (query.search) {
                 queryBuilder.andWhere(
@@ -54,7 +74,7 @@ export class BranchRepository extends Repository<BranchEntity> {
                 );
             }
 
-            if (typeof query.status === 'boolean') {
+            if (query.status) {
                 queryBuilder.andWhere('branch.status = :status', { status: query.status });
             }
 

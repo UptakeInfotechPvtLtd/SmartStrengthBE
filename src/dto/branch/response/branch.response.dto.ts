@@ -1,4 +1,4 @@
-import { IPaginationMeta } from '../../../config';
+import { BranchStatus, IPaginationMeta } from '../../../config';
 import { BranchEntity } from '../../../utils';
 
 export class BranchResponseDto {
@@ -10,7 +10,7 @@ export class BranchResponseDto {
     openingTime!: string | null;
     closingTime!: string | null;
     branchImages!: string[];
-    status!: boolean;
+    status!: BranchStatus;
     createdAt!: Date;
     updatedAt!: Date;
 

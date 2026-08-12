@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BranchStatus } from '../config';
 import { validationMessages } from '../lang/api-messages';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -9,20 +10,10 @@ const optionalString = (message: string) =>
         .union([z.string({ message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
-const statusSchema = z
-    .union([z.boolean(), z.enum(['true', 'false'])])
-    .optional()
-    .transform((value) => {
-        if (value === 'true') {
-            return true;
-        }
-
-        if (value === 'false') {
-            return false;
-        }
-
-        return value;
-    });
+const statusSchema = z.enum(BranchStatus, {
+    message: validationMessages.branch.statusInvalid,
+});
+const optionalStatusSchema = statusSchema.optional();
 const branchOrderBySchema = z
     .enum(['name', 'opening_time', 'closing_time', 'created_at', 'updated_at'])
     .optional()
@@ -64,7 +55,7 @@ const branchBodyObjectSchema = z
             z.string().regex(timeRegex, validationMessages.branch.closingTimeInvalid).optional(),
         ),
         branchImages: branchImagesSchema,
-        status: statusSchema,
+        status: optionalStatusSchema,
     })
     .strict();
 
@@ -98,7 +89,7 @@ export const updateBranchStatusSchema = {
     params: updateBranchSchema.params,
     body: z
         .object({
-            status: z.boolean({ message: validationMessages.common.statusBoolean }),
+            status: statusSchema,
         })
         .strict(),
 };
@@ -115,7 +106,7 @@ export const listBranchesSchema = {
             search: optionalString(validationMessages.branch.searchString).pipe(
                 z.string().max(255, validationMessages.branch.searchMaxLength).optional(),
             ),
-            status: statusSchema,
+            status: optionalStatusSchema,
             orderBy: branchOrderBySchema,
             order: orderSchema.transform((value) => value.toUpperCase() as 'ASC' | 'DESC'),
         })

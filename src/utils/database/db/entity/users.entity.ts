@@ -10,7 +10,7 @@ import {
     UpdateDateColumn,
     DeleteDateColumn,
 } from 'typeorm';
-import { Gender, UserType } from '../../../../config';
+import { Gender, UserType } from '../../../../config/enum';
 import { RoleEntity } from './roles.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
 import { UserBranchEntity } from './user-branch.entity';

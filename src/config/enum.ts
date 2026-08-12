@@ -20,3 +20,9 @@ export enum OtpPurpose {
     Signup = 'signup',
     ForgotPassword = 'forgot-password',
 }
+
+export enum BranchStatus {
+    Active = 'Active',
+    Inactive = 'Inactive',
+    UnderMaintenance = 'Under Maintenance',
+}

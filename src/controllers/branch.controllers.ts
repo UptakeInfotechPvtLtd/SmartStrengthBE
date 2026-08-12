@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { IAuthenticatedRequest } from '../config';
 import { BaseResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
@@ -44,12 +43,12 @@ export class BranchController {
     }
 
     async getBranchById(req: IAuthenticatedRequest<BranchIdParamsPayload>) {
-        const result = await this.branchService.getBranchById(req.params);
+        const result = await this.branchService.getBranchById(req.params, req.user);
         return new BaseResponseDto('', result);
     }
 
-    async listBranches(req: Request<any, any, any, FetchBranchesQueryPayload>) {
-        const result = await this.branchService.listBranches(req.query);
+    async listBranches(req: IAuthenticatedRequest<any, any, FetchBranchesQueryPayload>) {
+        const result = await this.branchService.listBranches(req.query, req.user);
         return new BaseResponseDto('', result);
     }
 }

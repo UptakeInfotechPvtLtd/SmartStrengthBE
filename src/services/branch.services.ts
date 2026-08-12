@@ -1,3 +1,4 @@
+import { BranchStatus, IJwtPayload, Roles } from '../config';
 import { BranchListResponseDto, BranchResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import { BranchRepository, NotFoundException, buildPagination } from '../utils';
@@ -21,7 +22,7 @@ export class BranchService {
             opening_time: body.openingTime,
             closing_time: body.closingTime,
             branch_images: body.branchImages || [],
-            status: body.status ?? true,
+            status: body.status ?? BranchStatus.Active,
         });
 
         return new BranchResponseDto(branch);
@@ -60,13 +61,21 @@ export class BranchService {
         await this.branchRepo.softDeleteBranch(branch);
     }
 
-    async getBranchById(params: BranchIdParamsPayload): Promise<BranchResponseDto> {
-        return new BranchResponseDto(await this.getActiveBranch(params.id));
+    async getBranchById(
+        params: BranchIdParamsPayload,
+        authUser: IJwtPayload,
+    ): Promise<BranchResponseDto> {
+        return new BranchResponseDto(await this.getActiveBranch(params.id, authUser));
     }
 
-    async listBranches(query: FetchBranchesQueryPayload): Promise<BranchListResponseDto> {
+    async listBranches(
+        query: FetchBranchesQueryPayload,
+        authUser: IJwtPayload,
+    ): Promise<BranchListResponseDto> {
+        const assignedUserId = this.getAssignedUserId(authUser);
         const { branches, total, page, pageSize, offset } = await this.branchRepo.listBranches(
             query,
+            assignedUserId,
         );
 
         return new BranchListResponseDto(
@@ -75,12 +84,22 @@ export class BranchService {
         );
     }
 
-    private async getActiveBranch(id: string) {
-        const branch = await this.branchRepo.findBranchById(id);
+    private async getActiveBranch(id: string, authUser?: IJwtPayload) {
+        const branch = await this.branchRepo.findBranchById(id, this.getAssignedUserId(authUser));
         if (!branch) {
             throw new NotFoundException(messages.branchNotFound);
         }
 
         return branch;
+    }
+
+    private getAssignedUserId(authUser?: IJwtPayload): string | undefined {
+        if (!authUser) {
+            return undefined;
+        }
+
+        return [Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)
+            ? authUser.userId
+            : undefined;
     }
 }
