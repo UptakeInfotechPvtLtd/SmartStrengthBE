@@ -25,13 +25,22 @@ loadEnv();
 
 const app: Application = express();
 const PORT: number = Number(getEnv('BACKEND_PORT')) || 8000;
+const CORS_ENABLED = getEnvBoolean('CORS_ENABLED', true);
+const CORS_ORIGIN = getEnv('CORS_ORIGIN', getEnv('FRONTEND_URL', '*'));
 
 // -------------------------
 // Global Middlewares
 // -------------------------
-if (getEnvBoolean('CORS_ENABLED', true)) {
-    app.use(cors());
-}
+app.use(
+    cors({
+        origin: CORS_ENABLED
+            ? CORS_ORIGIN.split(',').map((origin) => origin.trim())
+            : true,
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    }),
+);
 
 helmet({
     contentSecurityPolicy: {
