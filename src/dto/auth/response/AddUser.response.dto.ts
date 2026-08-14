@@ -1,5 +1,6 @@
 import { Gender, UserType } from '../../../config';
 import { RoleEntity, UserEntity } from '../../../utils';
+import { UserPerformanceMetricResponseDto } from '../../user';
 
 export class RoleResponse {
     id!: string;
@@ -19,8 +20,10 @@ export class AddUserResponseDto {
     age!: number | null;
     gender!: Gender | null;
     userType!: UserType | null;
+    profileImageUrl!: string | null;
+    description!: string | null;
     branchIds!: string[];
-    performanceMetrics!: UserEntity['performance_metrics'];
+    performanceMetrics!: UserPerformanceMetricResponseDto[];
     isTermsAgreed!: boolean;
     isEmailVerified!: boolean;
     status!: boolean;
@@ -36,9 +39,14 @@ export class AddUserResponseDto {
         this.age = user?.age ?? null;
         this.gender = user?.gender ?? null;
         this.userType = user?.user_type ?? null;
+        this.profileImageUrl = user?.profile_image_url ?? null;
+        this.description = user?.description ?? null;
         this.branchIds =
             user?.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
-        this.performanceMetrics = user?.performance_metrics ?? null;
+        this.performanceMetrics =
+            user?.performanceMetrics?.map(
+                (performanceMetric) => new UserPerformanceMetricResponseDto(performanceMetric),
+            ) || [];
         this.isTermsAgreed = user?.is_terms_agreed ?? false;
         this.isEmailVerified = user?.is_email_verified ?? true;
         this.status = user?.status || false;

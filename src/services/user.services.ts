@@ -12,6 +12,7 @@ import {
     UnauthorizedException,
     UserBranchEntity,
     UserEntity,
+    UserPerformanceMetricEntity,
     UserRepository,
     buildPagination,
 } from '../utils';
@@ -49,7 +50,21 @@ export class UserService {
             age: role.name === Roles.User ? body.age! : null,
             gender: role.name === Roles.User ? body.gender! : null,
             user_type: role.name === Roles.User ? body.userType! : null,
-            performance_metrics: role.name === Roles.User ? body.performanceMetrics! : null,
+            profile_image_url: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
+                ? body.profileImageUrl || null
+                : null,
+            description: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
+                ? body.description || null
+                : null,
+            performanceMetrics:
+                role.name === Roles.User
+                    ? [
+                          {
+                              metric_date: body.performanceMetrics!.date,
+                              metrics: body.performanceMetrics!.metrics,
+                          } as UserPerformanceMetricEntity,
+                      ]
+                    : [],
             status: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
                 ? body.status!
                 : true,
@@ -82,14 +97,20 @@ export class UserService {
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.performanceMetrics !== undefined)
-            user.performance_metrics = body.performanceMetrics;
+        if (body.profileImageUrl !== undefined) user.profile_image_url = body.profileImageUrl;
+        if (body.description !== undefined) user.description = body.description;
+        if (body.performanceMetrics !== undefined) {
+            this.ensurePerformanceMetricsAllowed(user);
+        }
         if (body.password !== undefined) user.password = await bcrypt.hash(body.password, 10);
         if (body.status !== undefined) user.status = body.status;
 
         const updatedUser = await this.userRepo.updateUser(user);
         if (body.branchIds) {
             await this.userRepo.updateUserBranches(updatedUser, body.branchIds);
+        }
+        if (body.performanceMetrics !== undefined) {
+            await this.addPerformanceMetricIfNotExists(updatedUser, body.performanceMetrics);
         }
 
         return new UserResponseDto(
@@ -146,11 +167,15 @@ export class UserService {
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.performanceMetrics !== undefined)
-            user.performance_metrics = body.performanceMetrics;
+        if (body.performanceMetrics !== undefined) {
+            this.ensurePerformanceMetricsAllowed(user);
+        }
         if (body.password !== undefined) user.password = await bcrypt.hash(body.password, 10);
 
         const updatedUser = await this.userRepo.updateUser(user);
+        if (body.performanceMetrics !== undefined) {
+            await this.addPerformanceMetricIfNotExists(updatedUser, body.performanceMetrics);
+        }
         return new UserResponseDto(
             (await this.userRepo.findUserByIdWithRole(updatedUser?.id)) || updatedUser,
         );
@@ -307,5 +332,43 @@ export class UserService {
                     branch: { id: branchId } as BranchEntity,
                 }) as UserBranchEntity,
         );
+    }
+
+    private ensurePerformanceMetricsAllowed(user: UserEntity): void {
+        if (user?.role?.name !== Roles.User) {
+            throw new BadRequestException(messages.performanceMetricsAllowedOnlyForNormalUser);
+        }
+    }
+
+    private async addPerformanceMetric(
+        user: UserEntity,
+        performanceMetric: NonNullable<
+            | CreateManagedUserBodyPayload['performanceMetrics']
+            | UpdateManagedUserBodyPayload['performanceMetrics']
+        >,
+    ): Promise<void> {
+        await this.userRepo.addUserPerformanceMetric(user, {
+            metric_date: performanceMetric.date,
+            metrics: performanceMetric.metrics,
+        });
+    }
+
+    private async addPerformanceMetricIfNotExists(
+        user: UserEntity,
+        performanceMetric: NonNullable<
+            | CreateManagedUserBodyPayload['performanceMetrics']
+            | UpdateManagedUserBodyPayload['performanceMetrics']
+        >,
+    ): Promise<void> {
+        const existingMetric = await this.userRepo.findPerformanceMetricByDate(
+            user.id,
+            performanceMetric.date,
+        );
+
+        if (existingMetric) {
+            return;
+        }
+
+        await this.addPerformanceMetric(user, performanceMetric);
     }
 }

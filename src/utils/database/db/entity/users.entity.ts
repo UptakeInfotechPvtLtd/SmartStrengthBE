@@ -14,13 +14,10 @@ import { Gender, UserType } from '../../../../config/enum';
 import { RoleEntity } from './roles.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
 import { UserBranchEntity } from './user-branch.entity';
+import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
 
-export interface PerformanceMetrics {
-    sprintTime30m: string;
-    verticalJump: string;
-    gripStrength: string;
-    vo2MaxEstimate: string;
-    bodyFatPercentage: string;
+export interface PerformanceMetricValues {
+    [label: string]: string | number | boolean | null;
 }
 
 @Entity('Users')
@@ -59,8 +56,11 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 20, nullable: true })
     user_type!: UserType | null;
 
-    @Column({ type: 'jsonb', nullable: true })
-    performance_metrics!: PerformanceMetrics | null;
+    @Column({ type: 'varchar', length: 500, nullable: true })
+    profile_image_url!: string | null;
+
+    @Column({ type: 'text', nullable: true })
+    description!: string | null;
 
     @Column({ type: 'boolean', default: false })
     is_terms_agreed!: boolean;
@@ -120,4 +120,9 @@ export class UserEntity {
 
     @OneToMany(() => UserBranchEntity, (userBranch) => userBranch.user, { cascade: true })
     userBranches!: UserBranchEntity[];
+
+    @OneToMany(() => UserPerformanceMetricEntity, (performanceMetric) => performanceMetric.user, {
+        cascade: true,
+    })
+    performanceMetrics!: UserPerformanceMetricEntity[];
 }

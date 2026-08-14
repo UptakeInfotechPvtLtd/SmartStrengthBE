@@ -3,7 +3,7 @@ import { FetchUsersQueryPayload } from '../../../../../validations';
 import { Roles } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
-import { UserBranchEntity, UserEntity } from '../../entity';
+import { UserBranchEntity, UserEntity, UserPerformanceMetricEntity } from '../../entity';
 
 export class UserRepository extends Repository<UserEntity> {
     constructor(dataSource: DataSource) {
@@ -16,8 +16,10 @@ export class UserRepository extends Repository<UserEntity> {
                 .leftJoinAndSelect('user.role', 'role')
                 .leftJoinAndSelect('user.userBranches', 'userBranches')
                 .leftJoinAndSelect('userBranches.branch', 'branch')
+                .leftJoinAndSelect('user.performanceMetrics', 'performanceMetrics')
                 .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
                 .andWhere('user.status = :status', { status: true })
+                .orderBy('performanceMetrics.metric_date', 'DESC')
                 .getOne(),
         );
     }
@@ -28,7 +30,9 @@ export class UserRepository extends Repository<UserEntity> {
                 .leftJoinAndSelect('user.role', 'role')
                 .leftJoinAndSelect('user.userBranches', 'userBranches')
                 .leftJoinAndSelect('userBranches.branch', 'branch')
+                .leftJoinAndSelect('user.performanceMetrics', 'performanceMetrics')
                 .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
+                .orderBy('performanceMetrics.metric_date', 'DESC')
                 .getOne(),
         );
     }
@@ -37,7 +41,8 @@ export class UserRepository extends Repository<UserEntity> {
         return handleError(() =>
             this.findOne({
                 where: { id: userId },
-                relations: { role: true, userBranches: { branch: true } },
+                relations: { role: true, userBranches: { branch: true }, performanceMetrics: true },
+                order: { performanceMetrics: { metric_date: 'DESC' } },
             }),
         );
     }
@@ -76,6 +81,7 @@ export class UserRepository extends Repository<UserEntity> {
                     .leftJoinAndSelect('user.role', 'role')
                     .leftJoinAndSelect('user.userBranches', 'userBranches')
                     .leftJoinAndSelect('userBranches.branch', 'branch')
+                    .leftJoinAndSelect('user.performanceMetrics', 'performanceMetrics')
                     .where('role.name IN (:...allowedRoles)', { allowedRoles });
 
                 if (query.search) {
@@ -104,6 +110,7 @@ export class UserRepository extends Repository<UserEntity> {
 
                 queryBuilder
                     .orderBy(`user.${query.orderBy || 'created_at'}`, query.order || 'DESC')
+                    .addOrderBy('performanceMetrics.metric_date', 'DESC')
                     .skip(offset)
                     .take(limit);
 
@@ -149,5 +156,32 @@ export class UserRepository extends Repository<UserEntity> {
                 .map((userBranch) => userBranch.branch?.id)
                 .filter((branchId): branchId is string => Boolean(branchId));
         }, []);
+    }
+
+    async findPerformanceMetricByDate(
+        userId: string,
+        metricDate: string,
+    ): Promise<UserPerformanceMetricEntity | null> {
+        return handleError(() =>
+            this.manager.findOne(UserPerformanceMetricEntity, {
+                where: { user: { id: userId }, metric_date: metricDate },
+            }),
+        );
+    }
+
+    async addUserPerformanceMetric(
+        user: UserEntity,
+        performanceMetric: Pick<UserPerformanceMetricEntity, 'metric_date' | 'metrics'>,
+    ): Promise<UserPerformanceMetricEntity> {
+        return handleError(() =>
+            this.manager.save(
+                UserPerformanceMetricEntity,
+                this.manager.create(UserPerformanceMetricEntity, {
+                    user,
+                    metric_date: performanceMetric.metric_date,
+                    metrics: performanceMetric.metrics,
+                }),
+            ),
+        );
     }
 }

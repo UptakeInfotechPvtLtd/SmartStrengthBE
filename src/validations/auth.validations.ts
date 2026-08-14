@@ -4,6 +4,7 @@ import { validationMessages } from '../lang/api-messages';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const dateRegex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
 const { common, email, profile } = validationMessages;
 const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
 const optionalString = (message: string) =>
@@ -25,28 +26,42 @@ const statusSchema = z
 
         return value;
     });
-const performanceMetricsSchema = z
+const performanceMetricValueSchema = z.union([
+    z.string().trim().max(50, validationMessages.signUp.performanceMetricMaxLength),
+    z.number(),
+    z.boolean(),
+    z.null(),
+]);
+const performanceMetricsSchema = z.record(
+    requiredString(validationMessages.signUp.performanceMetricLabelRequired),
+    performanceMetricValueSchema,
+);
+const parseMetricDate = (value: string): string | null => {
+    const [day, month, year] = value.split('/').map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) {
+        return null;
+    }
+
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+const performanceMetricDateSchema = requiredString(
+    validationMessages.signUp.performanceMetricDateRequired,
+)
+    .regex(dateRegex, validationMessages.signUp.performanceMetricDateInvalid)
+    .refine((value) => parseMetricDate(value) !== null, {
+        message: validationMessages.signUp.performanceMetricDateInvalid,
+    })
+    .transform((value) => parseMetricDate(value)!);
+const performanceMetricEntrySchema = z
     .object({
-        sprintTime30m: requiredString(validationMessages.signUp.sprintTime30mRequired).max(
-            50,
-            validationMessages.signUp.performanceMetricMaxLength,
-        ),
-        verticalJump: requiredString(validationMessages.signUp.verticalJumpRequired).max(
-            50,
-            validationMessages.signUp.performanceMetricMaxLength,
-        ),
-        gripStrength: requiredString(validationMessages.signUp.gripStrengthRequired).max(
-            50,
-            validationMessages.signUp.performanceMetricMaxLength,
-        ),
-        vo2MaxEstimate: requiredString(validationMessages.signUp.vo2MaxEstimateRequired).max(
-            50,
-            validationMessages.signUp.performanceMetricMaxLength,
-        ),
-        bodyFatPercentage: requiredString(validationMessages.signUp.bodyFatPercentageRequired).max(
-            50,
-            validationMessages.signUp.performanceMetricMaxLength,
-        ),
+        date: performanceMetricDateSchema,
+        metrics: performanceMetricsSchema,
     })
     .strict();
 
@@ -97,7 +112,7 @@ export const signUpSchema = {
             branchId: z.string().refine((val) => uuidRegex.test(val), {
                 message: validationMessages.signUp.branchIdInvalid,
             }),
-            performanceMetrics: performanceMetricsSchema,
+            performanceMetrics: performanceMetricEntrySchema,
             password: requiredString(validationMessages.signUp.passwordRequired)
                 .min(8, validationMessages.signUp.passwordMinLength)
                 .max(400, validationMessages.signUp.passwordMaxLength),

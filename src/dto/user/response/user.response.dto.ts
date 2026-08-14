@@ -2,6 +2,28 @@ import { Gender, IPaginationMeta, UserType } from '../../../config';
 import { RoleEntity, UserEntity } from '../../../utils';
 import { BranchResponseDto } from '../../branch';
 
+const formatMetricDate = (value?: string | null): string => {
+    if (!value) return '';
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
+};
+
+export class UserPerformanceMetricResponseDto {
+    id!: string;
+    date!: string;
+    metrics!: UserEntity['performanceMetrics'][number]['metrics'];
+    createdAt!: Date;
+    updatedAt!: Date;
+
+    constructor(performanceMetric?: UserEntity['performanceMetrics'][number]) {
+        this.id = performanceMetric?.id || '';
+        this.date = formatMetricDate(performanceMetric?.metric_date);
+        this.metrics = performanceMetric?.metrics || {};
+        this.createdAt = performanceMetric?.created_at!;
+        this.updatedAt = performanceMetric?.updated_at!;
+    }
+}
+
 export class UserRoleResponseDto {
     id!: string;
     name!: string;
@@ -20,7 +42,9 @@ export class UserResponseDto {
     age!: number | null;
     gender!: Gender | null;
     userType!: UserType | null;
-    performanceMetrics!: UserEntity['performance_metrics'];
+    profileImageUrl!: string | null;
+    description!: string | null;
+    performanceMetrics!: UserPerformanceMetricResponseDto[];
     isEmailVerified!: boolean;
     status!: boolean;
     role!: UserRoleResponseDto | null;
@@ -36,7 +60,12 @@ export class UserResponseDto {
         this.age = user?.age || null;
         this.gender = user?.gender || null;
         this.userType = user?.user_type || null;
-        this.performanceMetrics = user?.performance_metrics || null;
+        this.profileImageUrl = user?.profile_image_url || null;
+        this.description = user?.description || null;
+        this.performanceMetrics =
+            user?.performanceMetrics?.map(
+                (performanceMetric) => new UserPerformanceMetricResponseDto(performanceMetric),
+            ) || [];
         this.isEmailVerified = user?.is_email_verified || false;
         this.status = user?.status || false;
         this.role = user?.role ? new UserRoleResponseDto(user?.role) : null;

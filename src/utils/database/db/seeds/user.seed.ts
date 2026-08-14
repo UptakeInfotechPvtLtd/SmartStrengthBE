@@ -1,6 +1,6 @@
 import { DbDataSource } from '../connection';
 import * as bcrypt from 'bcryptjs';
-import { BranchEntity, RoleEntity, UserEntity } from '../entity';
+import { BranchEntity, RoleEntity, UserEntity, UserPerformanceMetricEntity } from '../entity';
 import { Gender, Roles, UserType } from '../../../../config';
 
 export async function seedUsers() {
@@ -23,7 +23,7 @@ export async function seedUsers() {
             age: null,
             gender: null,
             user_type: null,
-            performance_metrics: null,
+            performanceMetrics: [],
         },
         {
             full_name: 'Sub Admin User',
@@ -35,7 +35,7 @@ export async function seedUsers() {
             age: null,
             gender: null,
             user_type: null,
-            performance_metrics: null,
+            performanceMetrics: [],
         },
         {
             full_name: 'Trainer User',
@@ -47,7 +47,7 @@ export async function seedUsers() {
             age: null,
             gender: null,
             user_type: null,
-            performance_metrics: null,
+            performanceMetrics: [],
         },
         {
             full_name: 'Normal User',
@@ -59,13 +59,18 @@ export async function seedUsers() {
             age: 18,
             gender: Gender.Male,
             user_type: UserType.Student,
-            performance_metrics: {
-                sprintTime30m: '4.5 sec',
-                verticalJump: '50 cm',
-                gripStrength: '40 kg',
-                vo2MaxEstimate: '45 ml/kg/min',
-                bodyFatPercentage: '15%',
-            },
+            performanceMetrics: [
+                {
+                    metric_date: new Date().toISOString().slice(0, 10),
+                    metrics: {
+                        sprintTime30m: '4.5 sec',
+                        verticalJump: '50 cm',
+                        gripStrength: '40 kg',
+                        vo2MaxEstimate: '45 ml/kg/min',
+                        bodyFatPercentage: '15%',
+                    },
+                } as Partial<UserPerformanceMetricEntity>,
+            ],
         },
     ];
 
@@ -90,7 +95,7 @@ export async function seedUsers() {
             age: user.age,
             gender: user.gender,
             user_type: user.user_type,
-            performance_metrics: user.performance_metrics,
+            performanceMetrics: user.performanceMetrics,
             status: true,
             is_email_verified: true,
             is_terms_agreed: user.role_name === Roles.User,

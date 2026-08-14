@@ -15,6 +15,7 @@ import {
     UnauthorizedException,
     UserEntity,
     UserBranchEntity,
+    UserPerformanceMetricEntity,
     UserRepository,
     comparePassword,
     generateTokens,
@@ -80,7 +81,12 @@ export class AuthService {
                 userBranches: [
                     { branch: { id: body.branchId } as BranchEntity } as UserBranchEntity,
                 ],
-                performance_metrics: body.performanceMetrics,
+                performanceMetrics: [
+                    {
+                        metric_date: body.performanceMetrics.date,
+                        metrics: body.performanceMetrics.metrics,
+                    } as UserPerformanceMetricEntity,
+                ],
                 password: await bcrypt.hash(body.password, 10),
                 is_terms_agreed: true,
                 is_email_verified: false,

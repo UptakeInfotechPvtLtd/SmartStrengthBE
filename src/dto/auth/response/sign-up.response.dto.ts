@@ -1,5 +1,6 @@
 import { Gender, UserType } from '../../../config';
 import { UserEntity } from '../../../utils';
+import { UserPerformanceMetricResponseDto } from '../../user';
 import { RoleResponse } from './AddUser.response.dto';
 
 export class SignUpResponseDto {
@@ -11,7 +12,7 @@ export class SignUpResponseDto {
     gender!: Gender | null;
     userType!: UserType | null;
     branchIds!: string[];
-    performanceMetrics!: UserEntity['performance_metrics'];
+    performanceMetrics!: UserPerformanceMetricResponseDto[];
     isTermsAgreed!: boolean;
     accessToken!: string | null;
     refreshToken!: string | null;
@@ -31,7 +32,10 @@ export class SignUpResponseDto {
         this.userType = user?.user_type || null;
         this.branchIds =
             user?.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
-        this.performanceMetrics = user?.performance_metrics || null;
+        this.performanceMetrics =
+            user?.performanceMetrics?.map(
+                (performanceMetric) => new UserPerformanceMetricResponseDto(performanceMetric),
+            ) || [];
         this.isTermsAgreed = user?.is_terms_agreed || false;
 
         this.accessToken = accessToken;
