@@ -26,3 +26,25 @@ export enum BranchStatus {
     Inactive = 'Inactive',
     UnderMaintenance = 'Under Maintenance',
 }
+
+export enum MuscleGroup {
+    Legs = 'Legs',
+    Shoulders = 'Shoulders',
+    Back = 'Back',
+}
+
+export enum Difficulty {
+    Expert = 'Expert',
+    Beginner = 'Beginner',
+    Intermediate = 'Intermediate',
+}
+
+export enum VideoSource {
+    Uploaded = 'uploaded',
+    YoutubeLink = 'youtube_link',
+}
+
+export enum VideoStatus {
+    Published = 'published',
+    Draft = 'draft',
+}

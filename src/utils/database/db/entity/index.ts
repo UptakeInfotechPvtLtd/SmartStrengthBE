@@ -7,6 +7,7 @@ import { SessionEntity } from './session.entity';
 import { SessionBranchEntity } from './session-branch.entity';
 import { PackageEntity } from './package.entity';
 import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
+import { VideoLibraryEntity } from './video-library.entity';
 
 export const entities = [
     RoleEntity,
@@ -16,6 +17,7 @@ export const entities = [
     SessionBranchEntity,
     PackageEntity,
     UserPerformanceMetricEntity,
+    VideoLibraryEntity,
     BackListTokenEntity,
     UserEntity,
 ];
@@ -29,3 +31,4 @@ export * from './session.entity';
 export * from './session-branch.entity';
 export * from './package.entity';
 export * from './user-performance-metric.entity';
+export * from './video-library.entity';

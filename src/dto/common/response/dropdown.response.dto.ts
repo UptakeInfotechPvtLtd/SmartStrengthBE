@@ -1,4 +1,13 @@
-import { BranchStatus, Gender, OtpPurpose, UserType } from '../../../config';
+import {
+    BranchStatus,
+    Difficulty,
+    Gender,
+    MuscleGroup,
+    OtpPurpose,
+    UserType,
+    VideoSource,
+    VideoStatus,
+} from '../../../config';
 import { RoleEntity } from '../../../utils';
 
 export class DropdownOptionDto {
@@ -18,6 +27,10 @@ export class CommonDropdownResponseDto {
     otpPurposes!: DropdownOptionDto[];
     branchStatuses!: DropdownOptionDto[];
     brancheStatus!: DropdownOptionDto[];
+    muscleGroups!: DropdownOptionDto[];
+    difficulties!: DropdownOptionDto[];
+    videoSources!: DropdownOptionDto[];
+    videoStatuses!: DropdownOptionDto[];
 
     constructor(roles: RoleEntity[]) {
         this.roles = roles
@@ -27,6 +40,10 @@ export class CommonDropdownResponseDto {
         this.userTypes = this.createEnumOptions(UserType);
         this.otpPurposes = this.createEnumOptions(OtpPurpose);
         this.branchStatuses = this.createEnumOptions(BranchStatus);
+        this.muscleGroups = this.createEnumOptions(MuscleGroup);
+        this.difficulties = this.createEnumOptions(Difficulty);
+        this.videoSources = this.createEnumOptions(VideoSource);
+        this.videoStatuses = this.createEnumOptions(VideoStatus);
     }
 
     private createEnumOptions(enumObject: Record<string, string>): DropdownOptionDto[] {

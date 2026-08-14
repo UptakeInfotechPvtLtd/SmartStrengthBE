@@ -4,3 +4,4 @@ export * from './branch';
 export * from './user';
 export * from './session';
 export * from './package';
+export * from './cms';

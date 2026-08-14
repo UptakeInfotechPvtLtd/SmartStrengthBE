@@ -62,6 +62,8 @@ export const messages = {
         'Admin can change password only for Sub-Admin, Trainer, and User.',
     onlyUserCanUseForgotPassword: 'Forgot password is allowed only for normal users.',
     branchNotFound: 'Selected branch is not available.',
+    videoNotFound: 'Selected video is not available.',
+    cannotViewDraftVideo: 'You are not allowed to view draft video.',
 
     // success messages
     // auth
@@ -106,6 +108,11 @@ export const messages = {
     packageDeletedSuccessfully: 'Package deleted successfully.',
     packageFetchedSuccessfully: 'Package fetched successfully.',
     packagesFetchedSuccessfully: 'Packages fetched successfully.',
+    videoCreatedSuccessfully: 'Video created successfully.',
+    videoUpdatedSuccessfully: 'Video updated successfully.',
+    videoDeletedSuccessfully: 'Video deleted successfully.',
+    videoFetchedSuccessfully: 'Video fetched successfully.',
+    videosFetchedSuccessfully: 'Videos fetched successfully.',
 
     // Venue
     venueAddedSuccessfully: 'Venue added successfully.',
@@ -810,5 +817,20 @@ export const validationMessages = {
         imageUrlInvalid: 'Image URL must be valid.',
         faqRequired: 'At least one FAQ is required.',
         faqIdInvalid: 'Please select a valid FAQ.',
+        videoIdInvalid: 'Please select a valid video.',
+        exerciseNameRequired: 'Exercise name is required.',
+        exerciseNameMaxLength: 'Exercise name cannot exceed 150 characters.',
+        videoUrlRequired: 'Video URL is required.',
+        videoUrlMaxLength: 'Video URL cannot exceed 1000 characters.',
+        muscleGroupInvalid: 'Please select a valid muscle group.',
+        difficultyInvalid: 'Please select a valid difficulty.',
+        videoSourceInvalid: 'Please select a valid video source.',
+        targetMuscleRequired: 'Please add at least one target muscle.',
+        targetMuscleString: 'Target muscle must be a string.',
+        targetMuscleMaxLength: 'Target muscle cannot exceed 100 characters.',
+        videoStatusInvalid: 'Please select a valid video status.',
+        membersOnlyBoolean: 'Members only must be a boolean.',
+        searchString: 'Search must be a string.',
+        searchMaxLength: 'Search cannot exceed 255 characters.',
     },
 };
