@@ -8,6 +8,19 @@ import { BadRequestException } from '../error';
 import { messages } from '../../lang/api-messages';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
+const ALLOWED_FILE_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/svg+xml',
+    'video/mp4',
+    'video/mpeg',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-matroska',
+    'video/webm',
+]);
 
 // Storage configuration (disk)
 const storage = multer.diskStorage({
@@ -29,6 +42,14 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage,
     limits: { fileSize: MAX_FILE_SIZE },
+    fileFilter: (_req, file, cb) => {
+        if (!ALLOWED_FILE_MIME_TYPES.has(file.mimetype)) {
+            cb(new BadRequestException(messages.invalidUploadFileType));
+            return;
+        }
+
+        cb(null, true);
+    },
 }).single('file'); // Accept `file` field
 
 // Middleware wrapper
