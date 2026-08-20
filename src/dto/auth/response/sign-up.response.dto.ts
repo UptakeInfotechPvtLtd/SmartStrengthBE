@@ -11,6 +11,7 @@ export class SignUpResponseDto {
     age!: number | null;
     gender!: Gender | null;
     userType!: UserType | null;
+    profilePicUrl!: string | null;
     branchIds!: string[];
     performanceMetrics!: UserPerformanceMetricResponseDto[];
     isTermsAgreed!: boolean;
@@ -30,6 +31,7 @@ export class SignUpResponseDto {
         this.age = user?.age || null;
         this.gender = user?.gender || null;
         this.userType = user?.user_type || null;
+        this.profilePicUrl = user?.profile_image_url || null;
         this.branchIds =
             user?.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
         this.performanceMetrics =

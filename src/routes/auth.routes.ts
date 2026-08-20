@@ -22,7 +22,7 @@ const authController = new AuthController(authService);
 
 router.get('/test', routeHandler(authController.test));
 router.post('/signup', validate(signUpSchema), routeHandler(authController.signUp));
-router.post('/login', validate(loginSchema), routeHandler(authController.login));
+router.post('/login', validate(loginSchema), routeHandler(authController.login));   
 router.post(
     '/forgot-password',
     validate(forgotPasswordSchema),

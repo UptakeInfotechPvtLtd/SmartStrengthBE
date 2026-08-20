@@ -27,7 +27,7 @@ export const sessionRepo = new SessionRepository(DbDataSource);
 export const packageRepo = new PackageRepository(DbDataSource);
 export const cmsRepo = new CmsRepository(DbDataSource);
 
-export const authService = new AuthService(userRepo, roleRepo, blackListTokenRepo);
+export const authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
 export const commonService = new CommonService(roleRepo);
 export const sessionService = new SessionService(sessionRepo, branchRepo, userRepo);

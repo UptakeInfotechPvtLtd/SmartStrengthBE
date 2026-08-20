@@ -133,8 +133,8 @@ app.use(exceptionDispatchers);
 const server = http.createServer(app);
 
 Promise.all([connectDB()])
-    .then(() => {
-        void EmailQueue.startConsumer();
+    .then(async () => {
+        await EmailQueue.startConsumer();
         server.listen(PORT, '0.0.0.0', () => {
             logger.info(`🚀 Server running at http://0.0.0.0:${PORT}/api/`);
         });

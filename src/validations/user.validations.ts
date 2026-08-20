@@ -218,6 +218,9 @@ export const updateProfileSchema = {
                     message: validationMessages.signUp.invalidUserType,
                 })
                 .optional(),
+            profilePicUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
+                z.string().max(500, validationMessages.user.profileImageUrlMaxLength).optional(),
+            ),
             performanceMetrics: performanceMetricEntrySchema.optional(),
             password: optionalPasswordSchema,
         })

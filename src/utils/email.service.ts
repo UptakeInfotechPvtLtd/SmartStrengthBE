@@ -6,6 +6,7 @@ import { getEnv } from './env.utils';
 import { ISendEmailParams } from '../config';
 import { messages } from '../lang/api-messages';
 import { BadRequestException } from './error';
+import { logger } from './log.util';
 
 dotenv.config();
 
@@ -48,8 +49,8 @@ export class EmailService {
         html = '',
         attachments = [],
     }: ISendEmailParams) {
-        if (getEnv('IS_EMAIL_SEND') !== '1') {
-            console.log(`[SKIPPED] Email sending is disabled. To: ${to}, Subject: ${subject}`);
+        if (!['1', 'true'].includes(getEnv('IS_EMAIL_SEND').toLowerCase())) {
+            logger.info(`[Email] skipped because IS_EMAIL_SEND is disabled. To: ${to}`);
             return { success: true, message: messages.emailSendingDisabled };
         }
 
@@ -66,10 +67,10 @@ export class EmailService {
 
         try {
             const info = await transporter.sendMail(mailOptions);
-            console.log(`Email sent to ${to}: ${info.response}`);
+            logger.info(`[Email] sent to ${to}: ${info.response}`);
             return { success: true, message: messages.emailSent(to) };
         } catch (error: any) {
-            console.error('Error sending email:', error);
+            logger.error(`[Email] send failed to ${to}: ${error?.message}`);
             throw new BadRequestException(messages.emailSendFailed(error.message));
         }
     }

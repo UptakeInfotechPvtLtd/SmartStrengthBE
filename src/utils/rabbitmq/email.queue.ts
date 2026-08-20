@@ -21,7 +21,7 @@ export class EmailQueue {
         }
 
         try {
-            const channel = await RabbitMQService.getChannel();
+            const channel = await RabbitMQService.getPublisherChannel();
             await channel.assertQueue(RabbitMQConfig.emailQueue, { durable: true });
             const published = channel.sendToQueue(
                 RabbitMQConfig.emailQueue,
@@ -32,6 +32,7 @@ export class EmailQueue {
             if (!published) {
                 logger.warn('[RabbitMQ] email queue backpressure while publishing');
             }
+            logger.info(`[RabbitMQ] email published to ${RabbitMQConfig.emailQueue}: ${payload.to}`);
         } catch (error: any) {
             logger.error(`[RabbitMQ] failed to publish email: ${error?.message}`);
             if (!RabbitMQConfig.fallbackToDirectEmail) {
@@ -50,26 +51,34 @@ export class EmailQueue {
         }
 
         try {
-            const channel = await RabbitMQService.getChannel();
+            const channel = await RabbitMQService.getConsumerChannel();
             await channel.assertQueue(RabbitMQConfig.emailQueue, { durable: true });
             channel.prefetch(RabbitMQConfig.prefetch);
 
-            await channel.consume(RabbitMQConfig.emailQueue, async (message: Message | null) => {
-                if (!message) {
-                    return;
-                }
+            const consumeResult = (await channel.consume(
+                RabbitMQConfig.emailQueue,
+                async (message: Message | null) => {
+                    if (!message) {
+                        return;
+                    }
 
-                try {
-                    const payload = JSON.parse(message.content.toString()) as EmailQueuePayload;
-                    await EmailService.sendEmail(payload);
-                    channel.ack(message);
-                } catch (error: any) {
-                    logger.error(`[RabbitMQ] email consumer failed: ${error?.message}`);
-                    channel.nack(message, false, false);
-                }
-            });
+                    try {
+                        const payload = JSON.parse(message.content.toString()) as EmailQueuePayload;
+                        logger.info(
+                            `[RabbitMQ] email consumed from ${RabbitMQConfig.emailQueue}: ${payload.to}`,
+                        );
+                        await EmailService.sendEmail(payload);
+                        channel.ack(message);
+                    } catch (error: any) {
+                        logger.error(`[RabbitMQ] email consumer failed: ${error?.message}`);
+                        channel.nack(message, false, false);
+                    }
+                },
+            )) as { consumerTag: string };
 
-            logger.info(`[RabbitMQ] email consumer started: ${RabbitMQConfig.emailQueue}`);
+            logger.info(
+                `[RabbitMQ] email consumer started: ${RabbitMQConfig.emailQueue} (${consumeResult.consumerTag})`,
+            );
         } catch (error: any) {
             logger.error(`[RabbitMQ] email consumer not started: ${error?.message}`);
         }

@@ -1,6 +1,7 @@
 export const RabbitMQConfig = {
     get enabled(): boolean {
-        return process.env.RABBITMQ_ENABLED === '1' || process.env.RABBITMQ_ENABLED === 'true';
+        const value = (process.env.RABBITMQ_ENABLED || '').toLowerCase();
+        return value === '1' || value === 'true';
     },
 
     get url(): string {
@@ -16,9 +17,7 @@ export const RabbitMQConfig = {
     },
 
     get fallbackToDirectEmail(): boolean {
-        return (
-            process.env.RABBITMQ_FALLBACK_TO_DIRECT === '1' ||
-            process.env.RABBITMQ_FALLBACK_TO_DIRECT === 'true'
-        );
+        const value = (process.env.RABBITMQ_FALLBACK_TO_DIRECT || '').toLowerCase();
+        return value === '1' || value === 'true';
     },
 };

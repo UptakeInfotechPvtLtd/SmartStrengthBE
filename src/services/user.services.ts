@@ -167,6 +167,7 @@ export class UserService {
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
+        if (body.profilePicUrl !== undefined) user.profile_image_url = body.profilePicUrl;
         if (body.performanceMetrics !== undefined) {
             this.ensurePerformanceMetricsAllowed(user);
         }

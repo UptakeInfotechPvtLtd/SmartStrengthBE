@@ -6,22 +6,22 @@ import { SignUpResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
-    BranchEntity,
     BlackListTokenRepository,
+    BranchEntity,
+    BranchRepository,
     ConflictException,
-    EmailQueue,
     NotFoundException,
     RoleRepository,
     UnauthorizedException,
     UserEntity,
     UserBranchEntity,
-    UserPerformanceMetricEntity,
     UserRepository,
     comparePassword,
     generateTokens,
     otpGenerator,
 } from '../utils';
 import { EmailService } from '../utils/email.service';
+import { EmailQueue } from '../utils/rabbitmq';
 import {
     AdminChangePasswordBodyPayload,
     AdminChangePasswordParamsPayload,
@@ -52,6 +52,7 @@ export class AuthService {
     constructor(
         private readonly userRepo: UserRepository,
         private readonly userRoleRepo: RoleRepository,
+        private readonly branchRepo: BranchRepository,
         private readonly blackListTokenRepo?: BlackListTokenRepository,
     ) {}
 
@@ -70,28 +71,23 @@ export class AuthService {
             throw new NotFoundException(messages.roleNotFound);
         }
 
+        await this.ensureBranchesExist([body.branchId]);
+
         try {
             const user = await this.userRepo.createUser({
                 full_name: body.fullName,
                 email: body.email,
-                phone_no: body.mobileNumber,
-                age: body.age,
+                phone_no: body.phoneNumber,
+                age: null,
                 gender: body.gender,
                 user_type: body.userType,
-                userBranches: [
-                    { branch: { id: body.branchId } as BranchEntity } as UserBranchEntity,
-                ],
-                performanceMetrics: [
-                    {
-                        metric_date: body.performanceMetrics.date,
-                        metrics: body.performanceMetrics.metrics,
-                    } as UserPerformanceMetricEntity,
-                ],
+                profile_image_url: body.profilePicUrl || null,
                 password: await bcrypt.hash(body.password, 10),
                 is_terms_agreed: true,
                 is_email_verified: false,
                 status: true,
                 role: userRole,
+                userBranches: this.createUserBranches([body.branchId]),
             });
 
             await this.issueSignupOtp(user, true);
@@ -330,6 +326,22 @@ export class AuthService {
         return user;
     }
 
+    private async ensureBranchesExist(branchIds: string[]): Promise<void> {
+        const branches = await this.branchRepo.findActiveBranchesByIds(branchIds);
+        if (branches.length !== new Set(branchIds).size) {
+            throw new BadRequestException(messages.invalidBranchIds);
+        }
+    }
+
+    private createUserBranches(branchIds: string[]): UserBranchEntity[] {
+        return branchIds.map(
+            (branchId) =>
+                ({
+                    branch: { id: branchId } as BranchEntity,
+                }) as UserBranchEntity,
+        );
+    }
+
     private async findActiveVerifiedUserByEmail(email: string): Promise<UserEntity> {
         const user = await this.findActiveUserByEmail(email);
         if (!user.is_email_verified) {
@@ -362,10 +374,10 @@ export class AuthService {
         user.signup_otp = otp;
         user.signup_otp_expires_at = new Date(Date.now() + OTP_TTL_MS);
         await this.userRepo.updateUser(user);
-        this.publishOtpEmail(
+        await this.publishOtpEmail(
             user,
             otp,
-            'Verify your Vision-Arc account',
+            'Verify your Smart Strength account',
             '../templates/email/signup.html',
         );
     }
@@ -393,20 +405,20 @@ export class AuthService {
         user.is_forgot_password_otp_verified = false;
         user.forgot_password_otp_verified_until = null;
         await this.userRepo.updateUser(user);
-        this.publishOtpEmail(
+        await this.publishOtpEmail(
             user,
             otp,
-            'Reset your Vision-Arc password',
+            'Reset your Smart Strength password',
             '../templates/email/forgotPassowrd.html',
         );
     }
 
-    private publishOtpEmail(
+    private async publishOtpEmail(
         user: UserEntity,
         otp: string,
         subject: string,
         templateFile: string,
-    ): void {
+    ): Promise<void> {
         EmailQueue.publishInBackground({
             to: user.email,
             subject,
