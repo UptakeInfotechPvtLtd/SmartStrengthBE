@@ -69,7 +69,7 @@ export class AuthController {
             AdminChangePasswordBodyPayload
         >,
     ) {
-        const result = await this.authService.adminChangePassword(req.params, req.body);
+        const result = await this.authService.adminChangePassword(req.params, req.body, req.user);
         return new BaseResponseDto(messages.passwordChangedSuccessfully, result);
     }
 

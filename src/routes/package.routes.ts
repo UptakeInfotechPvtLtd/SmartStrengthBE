@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 import { PackageController } from '../controllers';
-import { packageService, routeHandler, verifyToken } from '../utils';
+import { packageService, requireAccessPermission, routeHandler, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createPackageSchema,
@@ -14,42 +14,47 @@ import {
 const router = Router();
 
 const packageController = new PackageController(packageService);
-const manageRoles = [Roles.Admin];
-const viewRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Create),
     validate(createPackageSchema),
     routeHandler(packageController.createPackage),
 );
 router.get(
     '/',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
     validate(listPackagesSchema),
     routeHandler(packageController.listPackages),
 );
 router.get(
     '/:id',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
     validate(packageIdSchema),
     routeHandler(packageController.getPackageById),
 );
 router.put(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Update),
     validate(updatePackageSchema),
     routeHandler(packageController.updatePackage),
 );
 router.patch(
     '/:id/status',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Update),
     validate(updatePackageStatusSchema),
     routeHandler(packageController.updatePackageStatus),
 );
 router.delete(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Delete),
     validate(packageIdSchema),
     routeHandler(packageController.deletePackage),
 );

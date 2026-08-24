@@ -5,3 +5,4 @@ export * from './user';
 export * from './session';
 export * from './package';
 export * from './cms';
+export * from './access-control';

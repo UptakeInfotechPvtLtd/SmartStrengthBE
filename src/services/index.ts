@@ -5,3 +5,4 @@ export * from './session.services';
 export * from './package.services';
 export * from './user.services';
 export * from './cms.services';
+export * from './access-control.services';

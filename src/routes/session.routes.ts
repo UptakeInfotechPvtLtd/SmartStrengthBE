@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 import { SessionController } from '../controllers';
-import { routeHandler, sessionService, verifyToken } from '../utils';
+import { requireAccessPermission, routeHandler, sessionService, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createSessionSchema,
@@ -14,42 +14,47 @@ import {
 const router = Router();
 
 const sessionController = new SessionController(sessionService);
-const manageRoles = [Roles.Admin, Roles.SubAdmin];
-const viewRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Create),
     validate(createSessionSchema),
     routeHandler(sessionController.createSession),
 );
 router.get(
     '/',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Read),
     validate(listSessionsSchema),
     routeHandler(sessionController.listSessions),
 );
 router.get(
     '/:id',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Read),
     validate(sessionIdSchema),
     routeHandler(sessionController.getSessionById),
 );
 router.put(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Update),
     validate(updateSessionSchema),
     routeHandler(sessionController.updateSession),
 );
 router.patch(
     '/:id/status',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Update),
     validate(updateSessionStatusSchema),
     routeHandler(sessionController.updateSessionStatus),
 );
 router.delete(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.SingleSessionManagement, AccessPermission.Delete),
     validate(sessionIdSchema),
     routeHandler(sessionController.deleteSession),
 );

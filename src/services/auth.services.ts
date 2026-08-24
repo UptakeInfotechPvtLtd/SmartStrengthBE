@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import redis from '../config/redis';
-import { IJwtPayload, OtpPurpose, Roles } from '../config';
+import { IJwtPayload, OtpPurpose, Roles, UserStatus } from '../config';
 import { SignUpResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import {
@@ -85,7 +85,7 @@ export class AuthService {
                 password: await bcrypt.hash(body.password, 10),
                 is_terms_agreed: true,
                 is_email_verified: false,
-                status: true,
+                status: UserStatus.Active,
                 role: userRole,
                 userBranches: this.createUserBranches([body.branchId]),
             });
@@ -157,7 +157,7 @@ export class AuthService {
             throw new UnauthorizedException(messages.invalidEmailAndPassword);
         }
 
-        if (!user.status) {
+        if (user.status !== UserStatus.Active) {
             throw new UnauthorizedException(messages.userIsNotActive);
         }
 
@@ -210,7 +210,7 @@ export class AuthService {
         }
 
         const user = await this.userRepo.findUserByIdWithRole(decoded.userId);
-        if (!user || !user.status || !user.is_email_verified) {
+        if (!user || user.status !== UserStatus.Active || !user.is_email_verified) {
             throw new UnauthorizedException(messages.invalidToken);
         }
 
@@ -272,15 +272,21 @@ export class AuthService {
     async adminChangePassword(
         params: AdminChangePasswordParamsPayload,
         body: AdminChangePasswordBodyPayload,
+        authUser: IJwtPayload,
     ): Promise<void> {
         const user = await this.userRepo.findUserByIdWithRole(params.id);
         if (!user) {
             throw new NotFoundException(messages.userNotFound);
         }
 
-        const allowedRoles = [Roles.SubAdmin, Roles.Trainer, Roles.User];
-        if (!user.role || !allowedRoles.includes(user.role.name as Roles)) {
+        if (
+            !user.role ||
+            !this.getManageableRoles(authUser?.roleName as Roles).includes(user.role.name as Roles)
+        ) {
             throw new BadRequestException(messages.adminCanOnlyChangeManagedUserPassword);
+        }
+        if (authUser?.roleName === Roles.SubAdmin) {
+            await this.ensureUserWithinAssignedBranches(user, authUser);
         }
 
         user.password = await bcrypt.hash(body.password, 10);
@@ -308,7 +314,7 @@ export class AuthService {
 
         const { accessToken, refreshToken } = await generateTokens({
             userId: user.id,
-            email: user.email,
+            email: user.email || '',
             roleId: user.role.id,
             roleName: user.role.name,
         });
@@ -320,7 +326,7 @@ export class AuthService {
         if (!user) {
             throw new NotFoundException(messages.userNotFound);
         }
-        if (!user.status) {
+        if (user.status !== UserStatus.Active) {
             throw new UnauthorizedException(messages.userIsNotActive);
         }
         return user;
@@ -330,6 +336,30 @@ export class AuthService {
         const branches = await this.branchRepo.findActiveBranchesByIds(branchIds);
         if (branches.length !== new Set(branchIds).size) {
             throw new BadRequestException(messages.invalidBranchIds);
+        }
+    }
+
+    private getManageableRoles(roleName: Roles): Roles[] {
+        if (roleName === Roles.Admin) {
+            return [Roles.SubAdmin, Roles.Trainer, Roles.User];
+        }
+
+        if (roleName === Roles.SubAdmin) {
+            return [Roles.Trainer, Roles.User];
+        }
+
+        return [];
+    }
+
+    private async ensureUserWithinAssignedBranches(
+        user: UserEntity,
+        authUser: IJwtPayload,
+    ): Promise<void> {
+        const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser?.userId);
+        const userBranchIds =
+            user.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
+        if (!userBranchIds.every((branchId) => assignedBranchIds.includes(branchId))) {
+            throw new UnauthorizedException(messages.cannotManageUserRole);
         }
     }
 
@@ -420,7 +450,7 @@ export class AuthService {
         templateFile: string,
     ): Promise<void> {
         EmailQueue.publishInBackground({
-            to: user.email,
+            to: user.email || '',
             subject,
             text: `Your OTP is ${otp}. It expires in 10 minutes.`,
             html: EmailService.prepareHtml(templateFile, {

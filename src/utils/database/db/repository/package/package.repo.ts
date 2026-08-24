@@ -16,7 +16,7 @@ export class PackageRepository extends Repository<PackageEntity> {
     async findPackageByName(packageName: string): Promise<PackageEntity | null> {
         return handleError(() =>
             this.createQueryBuilder('package')
-                .where('LOWER(package.package_name) = :packageName', {
+                .where('LOWER(package.package_type) = :packageName', {
                     packageName: packageName.toLowerCase(),
                 })
                 .getOne(),
@@ -55,15 +55,9 @@ export class PackageRepository extends Repository<PackageEntity> {
                 if (query.search) {
                     queryBuilder.andWhere(
                         new Brackets((qb) => {
-                            qb.where('package.package_name ILIKE :search', {
+                            qb.where('package.package_type ILIKE :search', {
                                 search: `%${query.search}%`,
-                            })
-                                .orWhere('package.best_for ILIKE :search', {
-                                    search: `%${query.search}%`,
-                                })
-                                .orWhere('package.description ILIKE :search', {
-                                    search: `%${query.search}%`,
-                                });
+                            });
                         }),
                     );
                 }

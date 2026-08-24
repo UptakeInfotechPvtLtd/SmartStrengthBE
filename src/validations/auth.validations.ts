@@ -5,10 +5,11 @@ import { validationMessages } from '../lang/api-messages';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const { common, email, profile } = validationMessages;
-const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
+const requiredString = (message: string) =>
+    z.string({ error: message }).trim().min(1, { error: message });
 const optionalString = (message: string) =>
     z
-        .union([z.string({ message }).trim(), z.null()])
+        .union([z.string({ error: message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
 const statusSchema = z
@@ -29,14 +30,12 @@ export const loginSchema = {
     body: z
         .object({
             email: z
-                .string({ message: email.email_str })
-                .min(1, { message: email.email_empty })
-                .refine((val) => emailRegex.test(val), {
-                    message: email.email_valid,
-                })
+                .string({ error: email.email_str })
+                .min(1, { error: email.email_empty })
+                .refine((val) => emailRegex.test(val), { error: email.email_valid })
                 .transform((val) => val.toLowerCase()),
 
-            password: z.string({ message: validationMessages.password.password_str }),
+            password: z.string({ error: validationMessages.password.password_str }),
         })
         .strict(),
 };
@@ -45,38 +44,34 @@ export const signUpSchema = {
     body: z
         .object({
             profilePicUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
-                z.string().max(500, validationMessages.user.profileImageUrlMaxLength).optional(),
+                z
+                    .string()
+                    .max(500, { error: validationMessages.user.profileImageUrlMaxLength })
+                    .optional(),
             ),
-            fullName: requiredString(validationMessages.signUp.fullNameRequired).max(
-                200,
-                validationMessages.signUp.fullNameMaxLength,
-            ),
+            fullName: requiredString(validationMessages.signUp.fullNameRequired).max(200, {
+                error: validationMessages.signUp.fullNameMaxLength,
+            }),
             email: z
-                .string({ message: email.email_str })
-                .min(1, { message: email.email_empty })
-                .refine((val) => emailRegex.test(val), {
-                    message: email.email_valid,
-                })
+                .string({ error: email.email_str })
+                .min(1, { error: email.email_empty })
+                .refine((val) => emailRegex.test(val), { error: email.email_valid })
                 .transform((val) => val.toLowerCase()),
             phoneNumber: requiredString(validationMessages.signUp.mobileNumberRequired)
-                .max(20, validationMessages.signUp.phoneNumberMaxLength)
-                .regex(/^[+0-9()\-\s]+$/, validationMessages.signUp.phoneNumberInvalid),
-            gender: z.enum(Gender, {
-                message: validationMessages.signUp.invalidGender,
-            }),
-            userType: z.enum(UserType, {
-                message: validationMessages.signUp.invalidUserType,
-            }),
+                .max(20, { error: validationMessages.signUp.phoneNumberMaxLength })
+                .regex(/^[+0-9()\-\s]+$/, { error: validationMessages.signUp.phoneNumberInvalid }),
+            gender: z.enum(Gender, { error: validationMessages.signUp.invalidGender }),
+            userType: z.enum(UserType, { error: validationMessages.signUp.invalidUserType }),
             branchId: z.string().refine((val) => uuidRegex.test(val), {
-                message: validationMessages.signUp.branchIdInvalid,
+                error: validationMessages.signUp.branchIdInvalid,
             }),
             password: requiredString(validationMessages.signUp.passwordRequired)
-                .min(8, validationMessages.signUp.passwordMinLength)
-                .max(400, validationMessages.signUp.passwordMaxLength),
+                .min(8, { error: validationMessages.signUp.passwordMinLength })
+                .max(400, { error: validationMessages.signUp.passwordMaxLength }),
             confirmPassword: requiredString(validationMessages.signUp.confirmPasswordRequired),
         })
         .refine((payload) => payload.password === payload.confirmPassword, {
-            message: validationMessages.signUp.passwordsDoNotMatch,
+            error: validationMessages.signUp.passwordsDoNotMatch,
             path: ['confirmPassword'],
         })
         .strict(),
@@ -86,21 +81,21 @@ export const addUserSchema = {
     body: z
         .object({
             fullName: optionalString(validationMessages.signUp.fullNameRequired).pipe(
-                z.string().max(200, validationMessages.signUp.fullNameMaxLength).optional(),
+                z
+                    .string()
+                    .max(200, { error: validationMessages.signUp.fullNameMaxLength })
+                    .optional(),
             ),
             mobileNumber: optionalString(profile.mobileNumberString).pipe(
-                z.string().max(20, profile.mobileNumberMaxLength).optional(),
+                z.string().max(20, { error: profile.mobileNumberMaxLength }).optional(),
             ),
             email: requiredString(profile.emailRequired)
-                .max(255, profile.emailMaxLength)
-                .refine((value) => emailRegex.test(value), {
-                    message: common.invalidEmail,
-                })
+                .max(255, { error: profile.emailMaxLength })
+                .refine((value) => emailRegex.test(value), { error: common.invalidEmail })
                 .transform((value) => value.toLowerCase()),
-            password: requiredString(profile.passwordRequired).max(
-                400,
-                profile.passwordMaxLength400,
-            ),
+            password: requiredString(profile.passwordRequired).max(400, {
+                error: profile.passwordMaxLength400,
+            }),
             status: statusSchema,
         })
         .strict(),
@@ -109,21 +104,22 @@ export const addUserSchema = {
 export const updateUserSchema = {
     params: z
         .object({
-            id: z.string().refine((val) => uuidRegex.test(val), {
-                message: profile.userIdInvalid,
-            }),
+            id: z.string().refine((val) => uuidRegex.test(val), { error: profile.userIdInvalid }),
         })
         .strict(),
     body: z
         .object({
             fullName: optionalString(validationMessages.signUp.fullNameRequired).pipe(
-                z.string().max(200, validationMessages.signUp.fullNameMaxLength).optional(),
+                z
+                    .string()
+                    .max(200, { error: validationMessages.signUp.fullNameMaxLength })
+                    .optional(),
             ),
             mobileNumber: optionalString(profile.mobileNumberString).pipe(
-                z.string().max(20, profile.mobileNumberMaxLength).optional(),
+                z.string().max(20, { error: profile.mobileNumberMaxLength }).optional(),
             ),
             password: optionalString(profile.passwordString).pipe(
-                z.string().max(400, profile.passwordMaxLength400).optional(),
+                z.string().max(400, { error: profile.passwordMaxLength400 }).optional(),
             ),
             status: statusSchema,
         })
@@ -133,11 +129,9 @@ export const updateUserSchema = {
 export const validateTempUserEmailSchema = {
     body: z.object({
         email: z
-            .string({ message: email.email_str })
-            .min(1, { message: email.email_empty })
-            .refine((val) => emailRegex.test(val), {
-                message: email.email_valid,
-            })
+            .string({ error: email.email_str })
+            .min(1, { error: email.email_empty })
+            .refine((val) => emailRegex.test(val), { error: email.email_valid })
             .transform((val) => val.toLowerCase()),
     }),
 };
@@ -145,11 +139,9 @@ export const validateTempUserEmailSchema = {
 export const forgotPasswordSchema = {
     body: z.object({
         email: z
-            .string({ message: email.email_str })
-            .min(1, { message: email.email_empty })
-            .refine((val) => emailRegex.test(val), {
-                message: email.email_valid,
-            })
+            .string({ error: email.email_str })
+            .min(1, { error: email.email_empty })
+            .refine((val) => emailRegex.test(val), { error: email.email_valid })
             .transform((val) => val.toLowerCase()),
     }),
 };
@@ -157,16 +149,12 @@ export const forgotPasswordSchema = {
 export const verifyOtpSchema = {
     body: z.object({
         email: z
-            .string({ message: email.email_str })
-            .min(1, { message: email.email_empty })
-            .refine((val) => emailRegex.test(val), {
-                message: email.email_valid,
-            })
+            .string({ error: email.email_str })
+            .min(1, { error: email.email_empty })
+            .refine((val) => emailRegex.test(val), { error: email.email_valid })
             .transform((val) => val.toLowerCase()),
-        otp: z.string({ message: common.otpString }),
-        purpose: z.enum(OtpPurpose, {
-            message: common.otpPurposeInvalid,
-        }),
+        otp: z.string({ error: common.otpString }),
+        purpose: z.enum(OtpPurpose, { error: common.otpPurposeInvalid }),
     }),
 };
 
@@ -174,17 +162,15 @@ export const resetPasswordSchema = {
     body: z
         .object({
             email: z
-                .string({ message: email.email_str })
-                .min(1, { message: email.email_empty })
-                .refine((val) => emailRegex.test(val), {
-                    message: email.email_valid,
-                })
+                .string({ error: email.email_str })
+                .min(1, { error: email.email_empty })
+                .refine((val) => emailRegex.test(val), { error: email.email_valid })
                 .transform((val) => val.toLowerCase()),
             password: requiredString(common.passwordRequired),
             confirmPassword: requiredString(common.confirmPasswordRequired),
         })
         .refine((payload) => payload?.password === payload?.confirmPassword, {
-            message: common.passwordsDoNotMatch,
+            error: common.passwordsDoNotMatch,
             path: ['confirmPassword'],
         }),
 };
@@ -192,21 +178,17 @@ export const resetPasswordSchema = {
 export const resentOtpSchema = {
     body: z.object({
         email: z
-            .string({ message: email.email_str })
-            .min(1, { message: email.email_empty })
-            .refine((val) => emailRegex.test(val), {
-                message: email.email_valid,
-            })
+            .string({ error: email.email_str })
+            .min(1, { error: email.email_empty })
+            .refine((val) => emailRegex.test(val), { error: email.email_valid })
             .transform((val) => val.toLowerCase()),
-        purpose: z.enum(OtpPurpose, {
-            message: common.otpPurposeInvalid,
-        }),
+        purpose: z.enum(OtpPurpose, { error: common.otpPurposeInvalid }),
     }),
 };
 
 export const refreshTokenSchema = {
     body: z.object({
-        refreshToken: z.string({ message: common.refreshTokenString }),
+        refreshToken: z.string({ error: common.refreshTokenString }),
     }),
 };
 
@@ -224,7 +206,7 @@ export const changePasswordSchema = {
             confirmPassword: requiredString(common.confirmPasswordRequired),
         })
         .refine((payload) => payload?.newPassword === payload?.confirmPassword, {
-            message: common.newPasswordsDoNotMatch,
+            error: common.newPasswordsDoNotMatch,
             path: ['confirmPassword'],
         }),
 };
@@ -232,24 +214,23 @@ export const changePasswordSchema = {
 export const adminUpdateUserSchema = {
     params: z
         .object({
-            id: z.string().refine((val) => uuidRegex.test(val), {
-                message: profile.userIdInvalid,
-            }),
+            id: z.string().refine((val) => uuidRegex.test(val), { error: profile.userIdInvalid }),
         })
         .strict(),
     body: z
         .object({
             roleId: z
                 .string()
-                .refine((val) => uuidRegex.test(val), {
-                    message: profile.roleIdInvalid,
-                })
+                .refine((val) => uuidRegex.test(val), { error: profile.roleIdInvalid })
                 .optional(),
             fullName: optionalString(validationMessages.signUp.fullNameRequired).pipe(
-                z.string().max(200, validationMessages.signUp.fullNameMaxLength).optional(),
+                z
+                    .string()
+                    .max(200, { error: validationMessages.signUp.fullNameMaxLength })
+                    .optional(),
             ),
             mobileNumber: optionalString(profile.mobileNumberString).pipe(
-                z.string().max(20, profile.mobileNumberMaxLength).optional(),
+                z.string().max(20, { error: profile.mobileNumberMaxLength }).optional(),
             ),
             status: statusSchema,
         })
@@ -259,9 +240,7 @@ export const adminUpdateUserSchema = {
 export const adminChangePasswordSchema = {
     params: z
         .object({
-            id: z.string().refine((val) => uuidRegex.test(val), {
-                message: profile.userIdInvalid,
-            }),
+            id: z.string().refine((val) => uuidRegex.test(val), { error: profile.userIdInvalid }),
         })
         .strict(),
     body: z
@@ -270,7 +249,7 @@ export const adminChangePasswordSchema = {
             confirmPassword: requiredString(common.confirmPasswordRequired),
         })
         .refine((payload) => payload.password === payload.confirmPassword, {
-            message: common.passwordsDoNotMatch,
+            error: common.passwordsDoNotMatch,
             path: ['confirmPassword'],
         })
         .strict(),
@@ -279,14 +258,12 @@ export const adminChangePasswordSchema = {
 export const updateUserStatusSchema = {
     params: z
         .object({
-            id: z.string().refine((val) => uuidRegex.test(val), {
-                message: profile.userIdInvalid,
-            }),
+            id: z.string().refine((val) => uuidRegex.test(val), { error: profile.userIdInvalid }),
         })
         .strict(),
     body: z
         .object({
-            status: z.boolean({ message: common.statusBoolean }),
+            status: z.boolean({ error: common.statusBoolean }),
         })
         .strict(),
 };

@@ -1,11 +1,13 @@
 import { z } from 'zod';
+import { PackageType } from '../config';
 import { validationMessages } from '../lang/api-messages';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
+const requiredString = (message: string) =>
+    z.string({ error: message }).trim().min(1, { error: message });
 const optionalString = (message: string) =>
     z
-        .union([z.string({ message }).trim(), z.null()])
+        .union([z.string({ error: message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
 const statusSchema = z.preprocess(
@@ -14,34 +16,23 @@ const statusSchema = z.preprocess(
         if (value === 'false') return false;
         return value;
     },
-    z.boolean({ message: validationMessages.common.statusBoolean }).optional(),
+    z.boolean({ error: validationMessages.common.statusBoolean }).optional(),
 );
 
 const packageBodyObjectSchema = z
     .object({
-        packageName: requiredString(validationMessages.package.packageNameRequired).max(
-            150,
-            validationMessages.package.packageNameMaxLength,
-        ),
+        packageType: z.enum(PackageType, { error: validationMessages.package.packageTypeInvalid }),
         price: z.coerce
-            .number({ message: validationMessages.package.priceNumber })
-            .min(0, validationMessages.package.priceMin),
+            .number({ error: validationMessages.package.priceNumber })
+            .min(0, { error: validationMessages.package.priceMin }),
         numberOfSessions: z.coerce
-            .number({ message: validationMessages.package.numberOfSessionsNumber })
-            .int(validationMessages.package.numberOfSessionsInteger)
-            .min(1, validationMessages.package.numberOfSessionsMin),
-        validityInDays: z.coerce
-            .number({ message: validationMessages.package.validityInDaysNumber })
-            .int(validationMessages.package.validityInDaysInteger)
-            .min(1, validationMessages.package.validityInDaysMin),
-        bestFor: requiredString(validationMessages.package.bestForRequired).max(
-            255,
-            validationMessages.package.bestForMaxLength,
-        ),
-        description: optionalString(validationMessages.package.descriptionString).pipe(
-            z.string().max(1000, validationMessages.package.descriptionMaxLength).optional(),
-        ),
-        status: statusSchema,
+            .number({ error: validationMessages.package.numberOfSessionsNumber })
+            .int({ error: validationMessages.package.numberOfSessionsInteger })
+            .min(1, { error: validationMessages.package.numberOfSessionsMin }),
+        validDays: z.coerce
+            .number({ error: validationMessages.package.validityInDaysNumber })
+            .int({ error: validationMessages.package.validityInDaysInteger })
+            .min(1, { error: validationMessages.package.validityInDaysMin }),
     })
     .strict();
 
@@ -53,7 +44,7 @@ export const updatePackageSchema = {
     params: z
         .object({
             id: z.string().refine((value) => uuidRegex.test(value), {
-                message: validationMessages.package.packageIdInvalid,
+                error: validationMessages.package.packageIdInvalid,
             }),
         })
         .strict(),
@@ -63,7 +54,7 @@ export const updatePackageSchema = {
 export const updatePackageStatusSchema = {
     params: updatePackageSchema.params,
     body: z
-        .object({ status: z.boolean({ message: validationMessages.common.statusBoolean }) })
+        .object({ status: z.boolean({ error: validationMessages.common.statusBoolean }) })
         .strict(),
 };
 
@@ -77,15 +68,18 @@ export const listPackagesSchema = {
             page: z.coerce.number().int().positive().optional(),
             pageSize: z.coerce.number().int().positive().max(100).optional(),
             search: optionalString(validationMessages.package.searchString).pipe(
-                z.string().max(255, validationMessages.package.searchMaxLength).optional(),
+                z
+                    .string()
+                    .max(255, { error: validationMessages.package.searchMaxLength })
+                    .optional(),
             ),
             status: statusSchema,
             orderBy: z
                 .enum([
-                    'package_name',
+                    'package_type',
                     'price',
                     'number_of_sessions',
-                    'validity_in_days',
+                    'valid_days',
                     'created_at',
                     'updated_at',
                 ])

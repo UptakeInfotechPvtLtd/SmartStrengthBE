@@ -5,3 +5,4 @@ export * from './branch';
 export * from './session';
 export * from './package';
 export * from './cms';
+export * from './access-control';

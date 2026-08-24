@@ -1,18 +1,30 @@
 import { z } from 'zod';
-import { Gender, UserType } from '../config';
+import { Gender, UserStatus, UserType } from '../config';
 import { validationMessages } from '../lang/api-messages';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const dateRegex = /^(0[1-9]|[12]\d|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
+const requiredString = (message: string) =>
+    z.string({ error: message }).trim().min(1, { error: message });
 const optionalString = (message: string) =>
     z
-        .union([z.string({ message }).trim(), z.null()])
+        .union([z.string({ error: message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
+const removableUrlString = (message: string) =>
+    z
+        .union([z.string({ error: message }).trim(), z.null()])
+        .optional()
+        .pipe(
+            z
+                .string()
+                .max(500, { error: validationMessages.user.profileImageUrlMaxLength })
+                .nullable()
+                .optional(),
+        );
 const optionalPasswordSchema = z
-    .union([z.string({ message: validationMessages.user.passwordString }).trim(), z.null()])
+    .union([z.string({ error: validationMessages.user.passwordString }).trim(), z.null()])
     .optional()
     .transform((value) => {
         if (value === null || value === '') return undefined;
@@ -21,30 +33,30 @@ const optionalPasswordSchema = z
     .pipe(
         z
             .string()
-            .min(8, validationMessages.signUp.passwordMinLength)
-            .max(400, validationMessages.signUp.passwordMaxLength)
+            .min(8, { error: validationMessages.signUp.passwordMinLength })
+            .max(400, { error: validationMessages.signUp.passwordMaxLength })
             .optional(),
     );
-const statusSchema = z
-    .union([z.boolean(), z.enum(['true', 'false'])])
-    .optional()
-    .transform((value) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
-        return value;
-    });
+const statusSchema = z.enum(UserStatus, { error: validationMessages.user.statusInvalid });
 const branchIdsSchema = z
     .array(
         z.string().refine((value) => uuidRegex.test(value), {
-            message: validationMessages.user.branchIdInvalid,
+            error: validationMessages.user.branchIdInvalid,
         }),
     )
-    .min(1, validationMessages.user.branchIdsRequired)
+    .min(1, { error: validationMessages.user.branchIdsRequired })
     .refine((ids) => new Set(ids).size === ids.length, {
-        message: validationMessages.user.branchIdsUnique,
+        error: validationMessages.user.branchIdsUnique,
     });
+const branchIdsQuerySchema = z
+    .preprocess((value) => {
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'string') return value.split(',').map((item) => item.trim());
+        return value;
+    }, branchIdsSchema)
+    .optional();
 const performanceMetricValueSchema = z.union([
-    z.string().trim().max(50, validationMessages.signUp.performanceMetricMaxLength),
+    z.string().trim().max(50, { error: validationMessages.signUp.performanceMetricMaxLength }),
     z.number(),
     z.boolean(),
     z.null(),
@@ -70,9 +82,9 @@ const parseMetricDate = (value: string): string | null => {
 const performanceMetricDateSchema = requiredString(
     validationMessages.signUp.performanceMetricDateRequired,
 )
-    .regex(dateRegex, validationMessages.signUp.performanceMetricDateInvalid)
+    .regex(dateRegex, { error: validationMessages.signUp.performanceMetricDateInvalid })
     .refine((value) => parseMetricDate(value) !== null, {
-        message: validationMessages.signUp.performanceMetricDateInvalid,
+        error: validationMessages.signUp.performanceMetricDateInvalid,
     })
     .transform((value) => parseMetricDate(value)!);
 const performanceMetricEntrySchema = z
@@ -86,50 +98,60 @@ export const createManagedUserSchema = {
     body: z
         .object({
             roleId: z.string().refine((value) => uuidRegex.test(value), {
-                message: validationMessages.user.roleIdInvalid,
+                error: validationMessages.user.roleIdInvalid,
             }),
-            fullName: requiredString(validationMessages.user.fullNameRequired).max(
-                200,
-                validationMessages.user.fullNameMaxLength,
-            ),
-            contactNumber: optionalString(validationMessages.user.contactNumberString).pipe(
+            fullName: optionalString(validationMessages.user.fullNameRequired).pipe(
                 z
                     .string()
-                    .max(20, validationMessages.user.contactNumberMaxLength)
-                    .regex(/^[+0-9()\-\s]+$/, validationMessages.user.contactNumberInvalid)
+                    .max(200, { error: validationMessages.user.fullNameMaxLength })
                     .optional(),
             ),
-            email: requiredString(validationMessages.user.emailRequired)
-                .max(255, validationMessages.user.emailMaxLength)
-                .refine((value) => emailRegex.test(value), {
-                    message: validationMessages.user.emailInvalid,
-                })
-                .transform((value) => value.toLowerCase()),
-            password: requiredString(validationMessages.user.passwordRequired)
-                .min(8, validationMessages.signUp.passwordMinLength)
-                .max(400, validationMessages.signUp.passwordMaxLength),
+            phoneNumber: optionalString(validationMessages.user.phoneNumberString).pipe(
+                z
+                    .string()
+                    .max(20, { error: validationMessages.user.phoneNumberMaxLength })
+                    .regex(/^[+0-9()\-\s]+$/, { error: validationMessages.user.phoneNumberInvalid })
+                    .optional(),
+            ),
+            email: optionalString(validationMessages.user.emailRequired)
+                .pipe(
+                    z
+                        .string()
+                        .max(255, { error: validationMessages.user.emailMaxLength })
+                        .refine((value) => emailRegex.test(value), {
+                            error: validationMessages.user.emailInvalid,
+                        })
+                        .optional(),
+                )
+                .transform((value) => value?.toLowerCase()),
+            password: optionalString(validationMessages.user.passwordRequired).pipe(
+                z
+                    .string()
+                    .min(8, { error: validationMessages.signUp.passwordMinLength })
+                    .max(400, { error: validationMessages.signUp.passwordMaxLength })
+                    .optional(),
+            ),
             confirmPassword: optionalString(validationMessages.signUp.confirmPasswordRequired),
-            branchIds: branchIdsSchema,
-            age: z.coerce
-                .number({ message: validationMessages.signUp.ageNumber })
-                .int(validationMessages.signUp.ageInteger)
-                .min(1, validationMessages.signUp.ageMin)
-                .max(120, validationMessages.signUp.ageMax)
-                .optional(),
-            gender: z.enum(Gender, { message: validationMessages.signUp.invalidGender }).optional(),
+            branchIds: branchIdsSchema.optional(),
+            dob: optionalString(validationMessages.user.dobRequired).optional(),
+            gender: z.enum(Gender, { error: validationMessages.signUp.invalidGender }).optional(),
             userType: z
-                .enum(UserType, {
-                    message: validationMessages.signUp.invalidUserType,
-                })
+                .enum(UserType, { error: validationMessages.signUp.invalidUserType })
                 .optional(),
-            profileImageUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
-                z.string().max(500, validationMessages.user.profileImageUrlMaxLength).optional(),
-            ),
+            profileImageUrl: removableUrlString(validationMessages.user.profileImageUrlString),
             description: optionalString(validationMessages.user.descriptionString).pipe(
-                z.string().max(1000, validationMessages.user.descriptionMaxLength).optional(),
+                z
+                    .string()
+                    .max(1000, { error: validationMessages.user.descriptionMaxLength })
+                    .optional(),
             ),
+            experienceInYears: z.coerce
+                .number({ error: validationMessages.user.experienceInYearsNumber })
+                .min(0, { error: validationMessages.user.experienceInYearsMin })
+                .max(99.99, { error: validationMessages.user.experienceInYearsMax })
+                .optional(),
             performanceMetrics: performanceMetricEntrySchema.optional(),
-            status: statusSchema,
+            status: statusSchema.optional(),
         })
         .strict(),
 };
@@ -138,88 +160,101 @@ export const updateManagedUserSchema = {
     params: z
         .object({
             id: z.string().refine((value) => uuidRegex.test(value), {
-                message: validationMessages.user.userIdInvalid,
+                error: validationMessages.user.userIdInvalid,
             }),
         })
         .strict(),
     body: z
         .object({
-            roleId: z
-                .string()
-                .refine((value) => uuidRegex.test(value), {
-                    message: validationMessages.user.roleIdInvalid,
-                })
-                .optional(),
+            roleId: z.string().refine((value) => uuidRegex.test(value), {
+                error: validationMessages.user.roleIdInvalid,
+            }),
             fullName: optionalString(validationMessages.user.fullNameRequired).pipe(
-                z.string().max(200, validationMessages.user.fullNameMaxLength).optional(),
-            ),
-            contactNumber: optionalString(validationMessages.user.contactNumberString).pipe(
                 z
                     .string()
-                    .max(20, validationMessages.user.contactNumberMaxLength)
-                    .regex(/^[+0-9()\-\s]+$/, validationMessages.user.contactNumberInvalid)
+                    .max(200, { error: validationMessages.user.fullNameMaxLength })
                     .optional(),
             ),
+            phoneNumber: optionalString(validationMessages.user.phoneNumberString).pipe(
+                z
+                    .string()
+                    .max(20, { error: validationMessages.user.phoneNumberMaxLength })
+                    .regex(/^[+0-9()\-\s]+$/, { error: validationMessages.user.phoneNumberInvalid })
+                    .optional(),
+            ),
+            email: optionalString(validationMessages.user.emailRequired)
+                .pipe(
+                    z
+                        .string()
+                        .max(255, { error: validationMessages.user.emailMaxLength })
+                        .refine((value) => emailRegex.test(value), {
+                            error: validationMessages.user.emailInvalid,
+                        })
+                        .optional(),
+                )
+                .transform((value) => value?.toLowerCase()),
             branchIds: branchIdsSchema.optional(),
-            age: z.coerce
-                .number({ message: validationMessages.signUp.ageNumber })
-                .int(validationMessages.signUp.ageInteger)
-                .min(1, validationMessages.signUp.ageMin)
-                .max(120, validationMessages.signUp.ageMax)
-                .optional(),
-            gender: z.enum(Gender, { message: validationMessages.signUp.invalidGender }).optional(),
+            dob: optionalString(validationMessages.user.dobRequired).optional(),
+            gender: z.enum(Gender, { error: validationMessages.signUp.invalidGender }).optional(),
             userType: z
-                .enum(UserType, {
-                    message: validationMessages.signUp.invalidUserType,
-                })
+                .enum(UserType, { error: validationMessages.signUp.invalidUserType })
                 .optional(),
-            profileImageUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
-                z.string().max(500, validationMessages.user.profileImageUrlMaxLength).optional(),
-            ),
+            profileImageUrl: removableUrlString(validationMessages.user.profileImageUrlString),
             description: optionalString(validationMessages.user.descriptionString).pipe(
-                z.string().max(1000, validationMessages.user.descriptionMaxLength).optional(),
+                z
+                    .string()
+                    .max(1000, { error: validationMessages.user.descriptionMaxLength })
+                    .optional(),
             ),
+            experienceInYears: z.coerce
+                .number({ error: validationMessages.user.experienceInYearsNumber })
+                .min(0, { error: validationMessages.user.experienceInYearsMin })
+                .max(99.99, { error: validationMessages.user.experienceInYearsMax })
+                .optional(),
             performanceMetrics: performanceMetricEntrySchema.optional(),
             password: optionalPasswordSchema,
-            status: statusSchema,
+            confirmPassword: optionalString(validationMessages.signUp.confirmPasswordRequired),
+            status: statusSchema.optional(),
         })
         .strict(),
 };
 
 export const updateManagedUserStatusSchema = {
     params: updateManagedUserSchema.params,
-    body: z
-        .object({ status: z.boolean({ message: validationMessages.common.statusBoolean }) })
-        .strict(),
+    body: z.object({ status: statusSchema }).strict(),
 };
 
 export const updateProfileSchema = {
     body: z
         .object({
             fullName: optionalString(validationMessages.user.fullNameRequired).pipe(
-                z.string().max(200, validationMessages.user.fullNameMaxLength).optional(),
-            ),
-            contactNumber: optionalString(validationMessages.user.contactNumberString).pipe(
                 z
                     .string()
-                    .max(20, validationMessages.user.contactNumberMaxLength)
-                    .regex(/^[+0-9()\-\s]+$/, validationMessages.user.contactNumberInvalid)
+                    .max(200, { error: validationMessages.user.fullNameMaxLength })
+                    .optional(),
+            ),
+            phoneNumber: optionalString(validationMessages.user.phoneNumberString).pipe(
+                z
+                    .string()
+                    .max(20, { error: validationMessages.user.phoneNumberMaxLength })
+                    .regex(/^[+0-9()\-\s]+$/, { error: validationMessages.user.phoneNumberInvalid })
                     .optional(),
             ),
             age: z.coerce
-                .number({ message: validationMessages.signUp.ageNumber })
-                .int(validationMessages.signUp.ageInteger)
-                .min(1, validationMessages.signUp.ageMin)
-                .max(120, validationMessages.signUp.ageMax)
+                .number({ error: validationMessages.signUp.ageNumber })
+                .int({ error: validationMessages.signUp.ageInteger })
+                .min(1, { error: validationMessages.signUp.ageMin })
+                .max(120, { error: validationMessages.signUp.ageMax })
                 .optional(),
-            gender: z.enum(Gender, { message: validationMessages.signUp.invalidGender }).optional(),
+            gender: z.enum(Gender, { error: validationMessages.signUp.invalidGender }).optional(),
             userType: z
-                .enum(UserType, {
-                    message: validationMessages.signUp.invalidUserType,
-                })
+                .enum(UserType, { error: validationMessages.signUp.invalidUserType })
                 .optional(),
-            profilePicUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
-                z.string().max(500, validationMessages.user.profileImageUrlMaxLength).optional(),
+            profileImageUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
+                z
+                    .string()
+                    .max(500, { error: validationMessages.user.profileImageUrlMaxLength })
+                    .optional(),
             ),
             performanceMetrics: performanceMetricEntrySchema.optional(),
             password: optionalPasswordSchema,
@@ -237,15 +272,16 @@ export const listManagedUsersSchema = {
             page: z.coerce.number().int().positive().optional(),
             pageSize: z.coerce.number().int().positive().max(100).optional(),
             search: optionalString(validationMessages.user.searchString).pipe(
-                z.string().max(255, validationMessages.user.searchMaxLength).optional(),
+                z.string().max(255, { error: validationMessages.user.searchMaxLength }).optional(),
             ),
             roleId: z
                 .string()
                 .refine((value) => uuidRegex.test(value), {
-                    message: validationMessages.user.roleIdInvalid,
+                    error: validationMessages.user.roleIdInvalid,
                 })
                 .optional(),
             status: statusSchema,
+            branchIds: branchIdsQuerySchema,
             orderBy: z
                 .enum(['full_name', 'email', 'phone_no', 'created_at', 'updated_at'])
                 .optional()

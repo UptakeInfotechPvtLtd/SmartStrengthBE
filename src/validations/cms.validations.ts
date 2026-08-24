@@ -3,10 +3,11 @@ import { Difficulty, MuscleGroup, VideoSource, VideoStatus } from '../config';
 import { validationMessages } from '../lang/api-messages';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
+const requiredString = (message: string) =>
+    z.string({ error: message }).trim().min(1, { error: message });
 const optionalString = (message: string) =>
     z
-        .union([z.string({ message }).trim(), z.null()])
+        .union([z.string({ error: message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
 const booleanSchema = z
@@ -20,29 +21,26 @@ const booleanSchema = z
 
 const targetMuscleSchema = z
     .array(
-        requiredString(validationMessages.cms.targetMuscleString).max(
-            100,
-            validationMessages.cms.targetMuscleMaxLength,
-        ),
+        requiredString(validationMessages.cms.targetMuscleString).max(100, {
+            error: validationMessages.cms.targetMuscleMaxLength,
+        }),
     )
-    .min(1, validationMessages.cms.targetMuscleRequired);
+    .min(1, { error: validationMessages.cms.targetMuscleRequired });
 
 const videoBodyObjectSchema = z
     .object({
-        exerciseName: requiredString(validationMessages.cms.exerciseNameRequired).max(
-            150,
-            validationMessages.cms.exerciseNameMaxLength,
-        ),
-        videoUrl: requiredString(validationMessages.cms.videoUrlRequired).max(
-            1000,
-            validationMessages.cms.videoUrlMaxLength,
-        ),
-        muscleGroup: z.enum(MuscleGroup, { message: validationMessages.cms.muscleGroupInvalid }),
-        difficulty: z.enum(Difficulty, { message: validationMessages.cms.difficultyInvalid }),
-        videoSource: z.enum(VideoSource, { message: validationMessages.cms.videoSourceInvalid }),
+        exerciseName: requiredString(validationMessages.cms.exerciseNameRequired).max(150, {
+            error: validationMessages.cms.exerciseNameMaxLength,
+        }),
+        videoUrl: requiredString(validationMessages.cms.videoUrlRequired).max(1000, {
+            error: validationMessages.cms.videoUrlMaxLength,
+        }),
+        muscleGroup: z.enum(MuscleGroup, { error: validationMessages.cms.muscleGroupInvalid }),
+        difficulty: z.enum(Difficulty, { error: validationMessages.cms.difficultyInvalid }),
+        videoSource: z.enum(VideoSource, { error: validationMessages.cms.videoSourceInvalid }),
         targetMuscle: targetMuscleSchema,
-        status: z.enum(VideoStatus, { message: validationMessages.cms.videoStatusInvalid }),
-        membersOnly: z.boolean({ message: validationMessages.cms.membersOnlyBoolean }),
+        status: z.enum(VideoStatus, { error: validationMessages.cms.videoStatusInvalid }),
+        membersOnly: z.boolean({ error: validationMessages.cms.membersOnlyBoolean }),
     })
     .strict();
 
@@ -54,7 +52,7 @@ export const updateVideoLibrarySchema = {
     params: z
         .object({
             id: z.string().refine((value) => uuidRegex.test(value), {
-                message: validationMessages.cms.videoIdInvalid,
+                error: validationMessages.cms.videoIdInvalid,
             }),
         })
         .strict(),
@@ -71,16 +69,16 @@ export const listVideoLibrarySchema = {
             page: z.coerce.number().int().positive().optional(),
             pageSize: z.coerce.number().int().positive().max(100).optional(),
             search: optionalString(validationMessages.cms.searchString).pipe(
-                z.string().max(255, validationMessages.cms.searchMaxLength).optional(),
+                z.string().max(255, { error: validationMessages.cms.searchMaxLength }).optional(),
             ),
             muscleGroup: z
-                .enum(MuscleGroup, { message: validationMessages.cms.muscleGroupInvalid })
+                .enum(MuscleGroup, { error: validationMessages.cms.muscleGroupInvalid })
                 .optional(),
             difficulty: z
-                .enum(Difficulty, { message: validationMessages.cms.difficultyInvalid })
+                .enum(Difficulty, { error: validationMessages.cms.difficultyInvalid })
                 .optional(),
             status: z
-                .enum(VideoStatus, { message: validationMessages.cms.videoStatusInvalid })
+                .enum(VideoStatus, { error: validationMessages.cms.videoStatusInvalid })
                 .optional(),
             membersOnly: booleanSchema,
             orderBy: z

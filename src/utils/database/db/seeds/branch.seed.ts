@@ -7,36 +7,32 @@ export async function seedBranches() {
 
     const branches = [
         {
-            name: 'Ahmedabad Main Branch',
-            contact_number: '9876543210',
-            map_link: 'https://maps.google.com/?q=Ahmedabad',
+            branch_name: 'Ahmedabad Main Branch',
+            map_url: 'https://maps.google.com/?q=Ahmedabad',
             address: 'Main Road, Ahmedabad',
             opening_time: '09:00',
             closing_time: '18:00',
-            branch_images: ['https://example.com/branch-ahmedabad-1.jpg'],
             status: BranchStatus.Active,
         },
         {
-            name: 'Surat Training Branch',
-            contact_number: '9876543211',
-            map_link: 'https://maps.google.com/?q=Surat',
+            branch_name: 'Surat Training Branch',
+            map_url: 'https://maps.google.com/?q=Surat',
             address: 'Ring Road, Surat',
             opening_time: '10:00',
             closing_time: '19:00',
-            branch_images: ['https://example.com/branch-surat-1.jpg'],
             status: BranchStatus.Active,
         },
     ];
 
     for (const branch of branches) {
-        const exists = await branchRepo.findOne({ where: { name: branch.name } });
+        const exists = await branchRepo.findOne({ where: { branch_name: branch.branch_name } });
         if (exists) {
-            console.log(`Branch already exists: ${branch.name}`);
+            console.log(`Branch already exists: ${branch.branch_name}`);
             continue;
         }
 
         await branchRepo.save(branch);
-        console.log(`Branch created: ${branch.name}`);
+        console.log(`Branch created: ${branch.branch_name}`);
     }
 
     console.log('Branches seeded successfully');

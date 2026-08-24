@@ -1,7 +1,7 @@
 import { BranchStatus, IJwtPayload, Roles } from '../config';
 import { BranchListResponseDto, BranchResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import { BranchRepository, NotFoundException, buildPagination } from '../utils';
+import { BranchRepository, NotFoundException, UserBranchEntity, buildPagination } from '../utils';
 import {
     BranchIdParamsPayload,
     CreateBranchBodyPayload,
@@ -13,16 +13,18 @@ import {
 export class BranchService {
     constructor(private readonly branchRepo: BranchRepository) {}
 
-    async createBranch(body: CreateBranchBodyPayload): Promise<BranchResponseDto> {
+    async createBranch(
+        body: CreateBranchBodyPayload,
+        authUser: IJwtPayload,
+    ): Promise<BranchResponseDto> {
         const branch = await this.branchRepo.createBranch({
-            name: body.name,
-            contact_number: body.contactNumber,
-            map_link: body.mapLink,
+            branch_name: body.branchName,
+            map_url: body.mapUrl,
             address: body.address,
             opening_time: body.openingTime,
             closing_time: body.closingTime,
-            branch_images: body.branchImages || [],
-            status: body.status ?? BranchStatus.Active,
+            status: BranchStatus.Active,
+            userBranches: this.createAssignedUserBranches(authUser),
         });
 
         return new BranchResponseDto(branch);
@@ -31,17 +33,15 @@ export class BranchService {
     async updateBranch(
         params: BranchIdParamsPayload,
         body: UpdateBranchBodyPayload,
+        authUser: IJwtPayload,
     ): Promise<BranchResponseDto> {
-        const branch = await this.getActiveBranch(params?.id);
+        const branch = await this.getActiveBranch(params?.id, authUser);
 
-        if (body.name !== undefined) branch.name = body.name;
-        if (body.contactNumber !== undefined) branch.contact_number = body.contactNumber;
-        if (body.mapLink !== undefined) branch.map_link = body.mapLink;
+        if (body.branchName !== undefined) branch.branch_name = body.branchName;
+        if (body.mapUrl !== undefined) branch.map_url = body.mapUrl;
         if (body.address !== undefined) branch.address = body.address;
         if (body.openingTime !== undefined) branch.opening_time = body.openingTime;
         if (body.closingTime !== undefined) branch.closing_time = body.closingTime;
-        if (body.branchImages !== undefined) branch.branch_images = body.branchImages;
-        if (body.status !== undefined) branch.status = body.status;
 
         return new BranchResponseDto(await this.branchRepo.updateBranch(branch));
     }
@@ -49,15 +49,16 @@ export class BranchService {
     async updateBranchStatus(
         params: BranchIdParamsPayload,
         body: UpdateBranchStatusBodyPayload,
+        authUser: IJwtPayload,
     ): Promise<BranchResponseDto> {
-        const branch = await this.getActiveBranch(params?.id);
+        const branch = await this.getActiveBranch(params?.id, authUser);
         branch.status = body.status;
 
         return new BranchResponseDto(await this.branchRepo.updateBranch(branch));
     }
 
-    async deleteBranch(params: BranchIdParamsPayload): Promise<void> {
-        const branch = await this.getActiveBranch(params?.id);
+    async deleteBranch(params: BranchIdParamsPayload, authUser: IJwtPayload): Promise<void> {
+        const branch = await this.getActiveBranch(params?.id, authUser);
         await this.branchRepo.softDeleteBranch(branch);
     }
 
@@ -98,8 +99,20 @@ export class BranchService {
             return undefined;
         }
 
-        return [Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)
+        return [Roles.SubAdmin, Roles.Trainer, Roles.User].includes(authUser?.roleName as Roles)
             ? authUser?.userId
             : undefined;
+    }
+
+    private createAssignedUserBranches(authUser: IJwtPayload): UserBranchEntity[] {
+        if (authUser?.roleName !== Roles.SubAdmin) {
+            return [];
+        }
+
+        return [
+            {
+                user: { id: authUser.userId },
+            } as UserBranchEntity,
+        ];
     }
 }

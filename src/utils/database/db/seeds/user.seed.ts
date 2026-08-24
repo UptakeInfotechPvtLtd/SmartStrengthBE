@@ -1,15 +1,19 @@
 import { DbDataSource } from '../connection';
 import * as bcrypt from 'bcryptjs';
 import { BranchEntity, RoleEntity, UserEntity, UserPerformanceMetricEntity } from '../entity';
-import { Gender, Roles, UserType } from '../../../../config';
+import { Gender, Roles, UserStatus, UserType } from '../../../../config';
 
 export async function seedUsers() {
     const roleRepo = DbDataSource.getRepository(RoleEntity);
     const branchRepo = DbDataSource.getRepository(BranchEntity);
     const userRepo = DbDataSource.getRepository(UserEntity);
 
-    const branchOne = await branchRepo.findOne({ where: { name: 'Ahmedabad Main Branch' } });
-    const branchTwo = await branchRepo.findOne({ where: { name: 'Surat Training Branch' } });
+    const branchOne = await branchRepo.findOne({
+        where: { branch_name: 'Ahmedabad Main Branch' },
+    });
+    const branchTwo = await branchRepo.findOne({
+        where: { branch_name: 'Surat Training Branch' },
+    });
     const allBranches = [branchOne, branchTwo].filter(Boolean) as BranchEntity[];
 
     const users = [
@@ -96,7 +100,7 @@ export async function seedUsers() {
             gender: user.gender,
             user_type: user.user_type,
             performanceMetrics: user.performanceMetrics,
-            status: true,
+            status: UserStatus.Active,
             is_email_verified: true,
             is_terms_agreed: user.role_name === Roles.User,
             role,

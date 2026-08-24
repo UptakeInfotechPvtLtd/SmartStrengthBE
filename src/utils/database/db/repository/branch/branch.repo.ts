@@ -1,7 +1,7 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { BranchEntity } from '../../entity';
 import { FetchBranchesQueryPayload } from '../../../../../validations';
-import { BranchStatus } from '../../../../../config';
+import { BranchOrderBy, BranchStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
 
@@ -67,8 +67,10 @@ export class BranchRepository extends Repository<BranchEntity> {
                 if (query.search) {
                     queryBuilder.andWhere(
                         new Brackets((qb) => {
-                            qb.where('branch.name ILIKE :search', { search: `%${query.search}%` })
-                                .orWhere('branch.contact_number ILIKE :search', {
+                            qb.where('branch.branch_name ILIKE :search', {
+                                search: `%${query.search}%`,
+                            })
+                                .orWhere('branch.map_url ILIKE :search', {
                                     search: `%${query.search}%`,
                                 })
                                 .orWhere('branch.address ILIKE :search', {
@@ -79,11 +81,17 @@ export class BranchRepository extends Repository<BranchEntity> {
                 }
 
                 if (query.status) {
-                    queryBuilder.andWhere('branch.status = :status', { status: query.status });
+                    queryBuilder.andWhere('LOWER(branch.status) = :status', {
+                        status: query.status.toLowerCase(),
+                    });
                 }
 
                 queryBuilder
-                    .orderBy(`branch.${query.orderBy || 'created_at'}`, query.order || 'DESC')
+                    .orderBy(
+                        `branch.${this.getOrderByColumn(query.orderBy)}`,
+                        query.order || 'DESC',
+                    )
+                    .addOrderBy('branch.id', 'DESC')
                     .skip(offset)
                     .take(limit);
 
@@ -99,5 +107,22 @@ export class BranchRepository extends Repository<BranchEntity> {
                 offset: 0,
             },
         );
+    }
+
+    private getOrderByColumn(orderBy?: string): string {
+        const orderByMap: Record<string, string> = {
+            [BranchOrderBy.BranchName]: 'branch_name',
+            [BranchOrderBy.OpeningTime]: 'opening_time',
+            [BranchOrderBy.ClosingTime]: 'closing_time',
+            [BranchOrderBy.CreatedAt]: 'created_at',
+            [BranchOrderBy.UpdatedAt]: 'updated_at',
+            branch_name: 'branch_name',
+            opening_time: 'opening_time',
+            closing_time: 'closing_time',
+            created_at: 'created_at',
+            updated_at: 'updated_at',
+        };
+
+        return orderByMap[orderBy || ''] || 'created_at';
     }
 }

@@ -5,3 +5,4 @@ export * from './session.controllers';
 export * from './package.controllers';
 export * from './user.controllers';
 export * from './cms.controllers';
+export * from './access-control.controllers';

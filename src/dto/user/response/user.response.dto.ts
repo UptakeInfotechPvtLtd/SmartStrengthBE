@@ -1,4 +1,4 @@
-import { Gender, IPaginationMeta, UserType } from '../../../config';
+import { Gender, IPaginationMeta, UserStatus, UserType } from '../../../config';
 import { RoleEntity, UserEntity } from '../../../utils';
 import { BranchResponseDto } from '../../branch';
 
@@ -37,16 +37,18 @@ export class UserRoleResponseDto {
 export class UserResponseDto {
     id!: string;
     fullName!: string | null;
-    contactNumber!: string | null;
+    phoneNumber!: string | null;
     email!: string;
     age!: number | null;
+    dob!: string | null;
     gender!: Gender | null;
     userType!: UserType | null;
+    experienceInYears!: number | null;
     profileImageUrl!: string | null;
     description!: string | null;
     performanceMetrics!: UserPerformanceMetricResponseDto[];
     isEmailVerified!: boolean;
-    status!: boolean;
+    status!: UserStatus;
     role!: UserRoleResponseDto | null;
     branches!: BranchResponseDto[];
     createdAt!: Date;
@@ -55,11 +57,16 @@ export class UserResponseDto {
     constructor(user?: UserEntity) {
         this.id = user?.id || '';
         this.fullName = user?.full_name || null;
-        this.contactNumber = user?.phone_no || null;
+        this.phoneNumber = user?.phone_no || null;
         this.email = user?.email || '';
         this.age = user?.age || null;
+        this.dob = user?.dob || null;
         this.gender = user?.gender || null;
         this.userType = user?.user_type || null;
+        this.experienceInYears =
+            user?.experience_in_years !== undefined && user?.experience_in_years !== null
+                ? Number(user.experience_in_years)
+                : null;
         this.profileImageUrl = user?.profile_image_url || null;
         this.description = user?.description || null;
         this.performanceMetrics =
@@ -67,7 +74,7 @@ export class UserResponseDto {
                 (performanceMetric) => new UserPerformanceMetricResponseDto(performanceMetric),
             ) || [];
         this.isEmailVerified = user?.is_email_verified || false;
-        this.status = user?.status || false;
+        this.status = user?.status || UserStatus.Active;
         this.role = user?.role ? new UserRoleResponseDto(user?.role) : null;
         this.branches =
             user?.userBranches

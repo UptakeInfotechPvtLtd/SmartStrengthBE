@@ -2,11 +2,15 @@ import { DbDataSource } from '../connection';
 import { seedBranches } from './branch.seed';
 import { seedRoles } from './role.seed';
 import { seedUsers } from './user.seed';
+import { seedAccessModules } from './access-module.seed';
+import { seedAdminAccessControls } from './admin-access-control.seed';
 
 async function runSeeds() {
     await DbDataSource.initialize();
 
     await seedRoles();
+    await seedAccessModules();
+    await seedAdminAccessControls();
     await seedBranches();
     await seedUsers();
 

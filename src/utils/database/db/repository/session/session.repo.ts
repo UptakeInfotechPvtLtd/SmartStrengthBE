@@ -26,6 +26,21 @@ export class SessionRepository extends Repository<SessionEntity> {
         return handleError(() => this.save(session));
     }
 
+    async findSachinSession(excludeId?: string): Promise<SessionEntity | null> {
+        return handleError(() => {
+            const queryBuilder = this.createQueryBuilder('session').where(
+                'session.is_sachin_status = :isSachinStatus',
+                { isSachinStatus: true },
+            );
+
+            if (excludeId) {
+                queryBuilder.andWhere('session.id != :excludeId', { excludeId });
+            }
+
+            return queryBuilder.getOne();
+        });
+    }
+
     async softDeleteSession(sessionId?: string): Promise<void> {
         return handleError(async () => {
             await this.createQueryBuilder()
@@ -84,6 +99,12 @@ export class SessionRepository extends Repository<SessionEntity> {
 
                 if (query.branchId) {
                     queryBuilder.andWhere('branch.id = :branchId', { branchId: query.branchId });
+                }
+
+                if (typeof query.isSachinStatus === 'boolean') {
+                    queryBuilder.andWhere('session.is_sachin_status = :isSachinStatus', {
+                        isSachinStatus: query.isSachinStatus,
+                    });
                 }
 
                 queryBuilder

@@ -5,6 +5,7 @@ import {
     BadRequestException,
     BranchEntity,
     BranchRepository,
+    ConflictException,
     NotFoundException,
     SessionBranchEntity,
     SessionRepository,
@@ -31,13 +32,14 @@ export class SessionService {
         authUser: IJwtPayload,
     ): Promise<SessionResponseDto> {
         await this.ensureBranchesAllowed(body.branchIds, authUser);
+        await this.ensureSingleSachinSession(body.isSachinStatus);
 
         const session = await this.sessionRepo.createSession({
             session_name: body.sessionName,
             price: body.price.toFixed(2),
-            duration: body.duration,
             description: body.description || null,
-            status: body.status ?? true,
+            status: true,
+            is_sachin_status: body.isSachinStatus ?? false,
             sessionBranches: this.createSessionBranches(body.branchIds),
         });
 
@@ -55,12 +57,12 @@ export class SessionService {
         if (body.branchIds) {
             await this.ensureBranchesAllowed(body.branchIds, authUser);
         }
+        await this.ensureSingleSachinSession(body.isSachinStatus, session.id);
 
         if (body.sessionName !== undefined) session.session_name = body.sessionName;
         if (body.price !== undefined) session.price = body.price.toFixed(2);
-        if (body.duration !== undefined) session.duration = body.duration;
         if (body.description !== undefined) session.description = body.description;
-        if (body.status !== undefined) session.status = body.status;
+        if (body.isSachinStatus !== undefined) session.is_sachin_status = body.isSachinStatus;
 
         const updatedSession = await this.sessionRepo.updateSession(session);
         if (body.branchIds) {
@@ -108,6 +110,20 @@ export class SessionService {
         }
 
         return session;
+    }
+
+    private async ensureSingleSachinSession(
+        isSachinStatus?: boolean,
+        excludeSessionId?: string,
+    ): Promise<void> {
+        if (!isSachinStatus) {
+            return;
+        }
+
+        const existingSachinSession = await this.sessionRepo.findSachinSession(excludeSessionId);
+        if (existingSachinSession) {
+            throw new ConflictException(messages.sachinSessionAlreadyExists);
+        }
     }
 
     private async ensureBranchesAllowed(branchIds: string[], authUser: IJwtPayload): Promise<void> {

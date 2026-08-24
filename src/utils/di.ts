@@ -3,6 +3,7 @@ import {
     BranchService,
     CommonService,
     CmsService,
+    AccessControlService,
     PackageService,
     SessionService,
     UserService,
@@ -17,6 +18,7 @@ import {
     SessionRepository,
     CmsRepository,
     PackageRepository,
+    AccessControlRepository,
 } from './database'; // your file path
 
 export const userRepo = new UserRepository(DbDataSource);
@@ -26,6 +28,7 @@ export const branchRepo = new BranchRepository(DbDataSource);
 export const sessionRepo = new SessionRepository(DbDataSource);
 export const packageRepo = new PackageRepository(DbDataSource);
 export const cmsRepo = new CmsRepository(DbDataSource);
+export const accessControlRepo = new AccessControlRepository(DbDataSource);
 
 export const authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
@@ -34,3 +37,4 @@ export const sessionService = new SessionService(sessionRepo, branchRepo, userRe
 export const packageService = new PackageService(packageRepo);
 export const userService = new UserService(userRepo, roleRepo, branchRepo);
 export const cmsService = new CmsService(cmsRepo);
+export const accessControlService = new AccessControlService(accessControlRepo, roleRepo, userRepo);

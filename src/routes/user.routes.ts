@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 import { UserController } from '../controllers';
-import { routeHandler, userService, verifyToken } from '../utils';
+import { requireAccessPermission, routeHandler, userService, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createManagedUserSchema,
@@ -15,18 +15,19 @@ import {
 const router = Router();
 
 const userController = new UserController(userService);
-const manageRoles = [Roles.Admin, Roles.SubAdmin];
 const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Create),
     validate(createManagedUserSchema),
     routeHandler(userController.addUser),
 );
 router.get(
     '/',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Read),
     validate(listManagedUsersSchema),
     routeHandler(userController.listUsers),
 );
@@ -39,25 +40,29 @@ router.put(
 );
 router.get(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Read),
     validate(managedUserIdSchema),
     routeHandler(userController.getUserById),
 );
 router.put(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
     validate(updateManagedUserSchema),
     routeHandler(userController.updateUser),
 );
 router.patch(
     '/:id/status',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
     validate(updateManagedUserStatusSchema),
     routeHandler(userController.updateUserStatus),
 );
 router.delete(
     '/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Delete),
     validate(managedUserIdSchema),
     routeHandler(userController.deleteUser),
 );

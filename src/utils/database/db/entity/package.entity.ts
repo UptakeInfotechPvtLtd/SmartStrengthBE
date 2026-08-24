@@ -9,11 +9,11 @@ import {
 } from 'typeorm';
 
 @Entity('Packages')
-@Index('IDX_packages_name_active_unique', ['package_name'], {
+@Index('IDX_packages_type_active_unique', ['package_type'], {
     unique: true,
     where: `"deleted_at" IS NULL`,
 })
-@Index('IDX_packages_name', ['package_name'])
+@Index('IDX_packages_type', ['package_type'])
 @Index('IDX_packages_status', ['status'])
 @Index('IDX_packages_deleted_at', ['deleted_at'])
 @Index('IDX_packages_created_at', ['created_at'])
@@ -21,8 +21,8 @@ export class PackageEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @Column({ type: 'varchar', length: 150 })
-    package_name!: string;
+    @Column({ type: 'varchar', length: 50 })
+    package_type!: string;
 
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     price!: string;
@@ -31,13 +31,7 @@ export class PackageEntity {
     number_of_sessions!: number;
 
     @Column({ type: 'int' })
-    validity_in_days!: number;
-
-    @Column({ type: 'varchar', length: 255 })
-    best_for!: string;
-
-    @Column({ type: 'text', nullable: true })
-    description!: string | null;
+    valid_days!: number;
 
     @Column({ type: 'boolean', default: true })
     status!: boolean;

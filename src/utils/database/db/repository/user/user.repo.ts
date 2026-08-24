@@ -1,6 +1,6 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
 import { FetchUsersQueryPayload } from '../../../../../validations';
-import { Roles } from '../../../../../config';
+import { Roles, UserStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
 import { UserBranchEntity, UserEntity, UserPerformanceMetricEntity } from '../../entity';
@@ -18,7 +18,7 @@ export class UserRepository extends Repository<UserEntity> {
                 .leftJoinAndSelect('userBranches.branch', 'branch')
                 .leftJoinAndSelect('user.performanceMetrics', 'performanceMetrics')
                 .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
-                .andWhere('user.status = :status', { status: true })
+                .andWhere('user.status = :status', { status: UserStatus.Active })
                 .orderBy('performanceMetrics.metric_date', 'DESC')
                 .getOne(),
         );
@@ -33,6 +33,17 @@ export class UserRepository extends Repository<UserEntity> {
                 .leftJoinAndSelect('user.performanceMetrics', 'performanceMetrics')
                 .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
                 .orderBy('performanceMetrics.metric_date', 'DESC')
+                .getOne(),
+        );
+    }
+
+    async findUserByPhoneWithRole(phoneNumber: string): Promise<UserEntity | null> {
+        return handleError(() =>
+            this.createQueryBuilder('user')
+                .leftJoinAndSelect('user.role', 'role')
+                .leftJoinAndSelect('user.userBranches', 'userBranches')
+                .leftJoinAndSelect('userBranches.branch', 'branch')
+                .where('user.phone_no = :phoneNumber', { phoneNumber })
                 .getOne(),
         );
     }
@@ -67,6 +78,7 @@ export class UserRepository extends Repository<UserEntity> {
     async listUsers(
         query: FetchUsersQueryPayload,
         allowedRoles: Roles[],
+        assignedBranchIds?: string[],
     ): Promise<{
         users: UserEntity[];
         total: number;
@@ -104,8 +116,20 @@ export class UserRepository extends Repository<UserEntity> {
                     queryBuilder.andWhere('role.id = :roleId', { roleId: query.roleId });
                 }
 
-                if (typeof query.status === 'boolean') {
+                if (query.status) {
                     queryBuilder.andWhere('user.status = :status', { status: query.status });
+                }
+
+                if (query.branchIds?.length) {
+                    queryBuilder.andWhere('branch.id IN (:...branchIds)', {
+                        branchIds: query.branchIds,
+                    });
+                }
+
+                if (assignedBranchIds) {
+                    queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                        assignedBranchIds: assignedBranchIds.length ? assignedBranchIds : [''],
+                    });
                 }
 
                 queryBuilder

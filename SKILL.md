@@ -1,10 +1,10 @@
 ---
 name: smart-strength-api-development-standards
 description: >
-  Strict development standards for this Express, TypeScript, TypeORM API codebase.
-  Use before every coding task in this repository, especially when creating new APIs,
-  modules, database entities, relationships, migrations, validations, DTOs, services,
-  repositories, configuration, enums, interfaces, or feature changes.
+    Strict development standards for this Express, TypeScript, TypeORM API codebase.
+    Use before every coding task in this repository, especially when creating new APIs,
+    modules, database entities, relationships, migrations, validations, DTOs, services,
+    repositories, configuration, enums, interfaces, or feature changes.
 ---
 
 # Smart Strength API Development Standards
@@ -221,9 +221,12 @@ Validation uses Zod in `src/validations`:
 - Use shared validation helper patterns from existing files before adding new helpers.
 - Use `z.coerce.number()` for numeric query/body values that may arrive as strings.
 - Use `z.preprocess` for boolean query strings when existing behavior supports `true` and `false`.
+- Use Zod v4 error customization with `{ error: validationMessages... }`; do not use deprecated `{ message: ... }` options or direct string error args like `.min(1, message)`.
+- Use Zod v4 top-level string format validators such as `z.email({ error })`, `z.url({ error })`, and `z.uuid({ error })`; do not use deprecated chained formats such as `z.string().url(...)`.
 - Use UUID validation consistent with existing `uuidRegex` unless a shared UUID schema already exists.
 - Use `optionalString` style patterns for optional nullable string payloads.
 - Whitelist `orderBy` values with `z.enum`.
+- Put reusable `orderBy`, status, role, module, permission, and similar string sets in `src/config/enum.ts`; validations should import shared enums instead of defining inline string literal arrays.
 - Transform `order` to uppercase as `'ASC' | 'DESC'`.
 - Keep validation error messages in `validationMessages` inside `src/lang/api-messages.ts`.
 - Do not hardcode validation messages inside schema definitions.
@@ -419,6 +422,7 @@ Enums:
 - Put shared enums in `src/config/enum.ts` or the existing enum folder if one is introduced later.
 - Reuse existing enums when values match.
 - Do not duplicate string literal unions when a project enum already exists.
+- Do not keep reusable validation value lists inline with `z.enum([...])`; move them to `src/config/enum.ts` and import them in validation files.
 - Do not add enum values without checking all affected validation, DTO, database, and business logic.
 
 Interfaces and types:

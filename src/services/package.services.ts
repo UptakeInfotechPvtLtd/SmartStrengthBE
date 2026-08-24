@@ -13,16 +13,14 @@ export class PackageService {
     constructor(private readonly packageRepo: PackageRepository) {}
 
     async createPackage(body: CreatePackageBodyPayload): Promise<PackageResponseDto> {
-        await this.ensurePackageNameUnique(body.packageName);
+        await this.ensurePackageNameUnique(body.packageType);
 
         const packageData = await this.packageRepo.createPackage({
-            package_name: body.packageName,
+            package_type: body.packageType,
             price: body.price.toFixed(2),
             number_of_sessions: body.numberOfSessions,
-            validity_in_days: body.validityInDays,
-            best_for: body.bestFor,
-            description: body.description || null,
-            status: body.status ?? true,
+            valid_days: body.validDays,
+            status: true,
         });
 
         return new PackageResponseDto(packageData);
@@ -34,18 +32,15 @@ export class PackageService {
     ): Promise<PackageResponseDto> {
         const packageData = await this.getPackage(params?.id);
 
-        if (body.packageName !== undefined && body.packageName !== packageData.package_name) {
-            await this.ensurePackageNameUnique(body.packageName);
-            packageData.package_name = body.packageName;
+        if (body.packageType !== undefined && body.packageType !== packageData.package_type) {
+            await this.ensurePackageNameUnique(body.packageType);
+            packageData.package_type = body.packageType;
         }
         if (body.price !== undefined) packageData.price = body.price.toFixed(2);
         if (body.numberOfSessions !== undefined) {
             packageData.number_of_sessions = body.numberOfSessions;
         }
-        if (body.validityInDays !== undefined) packageData.validity_in_days = body.validityInDays;
-        if (body.bestFor !== undefined) packageData.best_for = body.bestFor;
-        if (body.description !== undefined) packageData.description = body.description;
-        if (body.status !== undefined) packageData.status = body.status;
+        if (body.validDays !== undefined) packageData.valid_days = body.validDays;
 
         return new PackageResponseDto(await this.packageRepo.updatePackage(packageData));
     }

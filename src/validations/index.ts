@@ -4,3 +4,4 @@ export * from './package.validations';
 export * from './session.validations';
 export * from './user.validations';
 export * from './cms.validations';
+export * from './access-control.validations';

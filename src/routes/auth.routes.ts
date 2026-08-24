@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers';
-import { routeHandler, authService, verifyToken } from '../utils';
+import { requireAccessPermission, routeHandler, authService, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     adminChangePasswordSchema,
@@ -14,7 +14,7 @@ import {
     signUpSchema,
     verifyOtpSchema,
 } from '../validations';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ const authController = new AuthController(authService);
 
 router.get('/test', routeHandler(authController.test));
 router.post('/signup', validate(signUpSchema), routeHandler(authController.signUp));
-router.post('/login', validate(loginSchema), routeHandler(authController.login));   
+router.post('/login', validate(loginSchema), routeHandler(authController.login));
 router.post(
     '/forgot-password',
     validate(forgotPasswordSchema),
@@ -54,7 +54,8 @@ router.post(
 );
 router.post(
     '/admin/users/:id/change-password',
-    verifyToken([Roles.Admin]),
+    verifyToken([Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User]),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
     validate(adminChangePasswordSchema),
     routeHandler(authController.adminChangePassword),
 );

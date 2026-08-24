@@ -21,24 +21,24 @@ export class BranchController {
     }
 
     async createBranch(req: IAuthenticatedRequest<any, CreateBranchBodyPayload>) {
-        const result = await this.branchService.createBranch(req.body);
+        const result = await this.branchService.createBranch(req.body, req.user);
         return new BaseResponseDto(messages.branchCreatedSuccessfully, result);
     }
 
     async updateBranch(req: IAuthenticatedRequest<BranchIdParamsPayload, UpdateBranchBodyPayload>) {
-        const result = await this.branchService.updateBranch(req.params, req.body);
+        const result = await this.branchService.updateBranch(req.params, req.body, req.user);
         return new BaseResponseDto(messages.branchUpdatedSuccessfully, result);
     }
 
     async updateBranchStatus(
         req: IAuthenticatedRequest<BranchIdParamsPayload, UpdateBranchStatusBodyPayload>,
     ) {
-        const result = await this.branchService.updateBranchStatus(req.params, req.body);
+        const result = await this.branchService.updateBranchStatus(req.params, req.body, req.user);
         return new BaseResponseDto(messages.branchStatusUpdatedSuccessfully, result);
     }
 
     async deleteBranch(req: IAuthenticatedRequest<BranchIdParamsPayload>) {
-        const result = await this.branchService.deleteBranch(req.params);
+        const result = await this.branchService.deleteBranch(req.params, req.user);
         return new BaseResponseDto(messages.branchDeletedSuccessfully, result);
     }
 

@@ -13,6 +13,7 @@ import { SessionBranchEntity } from './session-branch.entity';
 @Entity('Sessions')
 @Index('IDX_sessions_name', ['session_name'])
 @Index('IDX_sessions_status', ['status'])
+@Index('IDX_sessions_is_sachin_status', ['is_sachin_status'])
 @Index('IDX_sessions_deleted_at', ['deleted_at'])
 @Index('IDX_sessions_created_at', ['created_at'])
 export class SessionEntity {
@@ -25,14 +26,14 @@ export class SessionEntity {
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     price!: string;
 
-    @Column({ type: 'int' })
-    duration!: number;
-
     @Column({ type: 'text', nullable: true })
     description!: string | null;
 
     @Column({ type: 'boolean', default: true })
     status!: boolean;
+
+    @Column({ type: 'boolean', default: false })
+    is_sachin_status!: boolean;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at!: Date;

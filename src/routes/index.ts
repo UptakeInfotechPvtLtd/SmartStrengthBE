@@ -7,6 +7,7 @@ import sessionRoutes from './session.routes';
 import packageRoutes from './package.routes';
 import userRoutes from './user.routes';
 import cmsRoutes from './cms.routes';
+import accessControlRoutes from './access-control.routes';
 
 const router = Router();
 const defaultRoutes: { path: string; route: Router }[] = [
@@ -17,6 +18,7 @@ const defaultRoutes: { path: string; route: Router }[] = [
     { path: '/package', route: packageRoutes },
     { path: '/user', route: userRoutes },
     { path: '/cms', route: cmsRoutes },
+    { path: '/access-control', route: accessControlRoutes },
 ];
 
 defaultRoutes.forEach((route) => {

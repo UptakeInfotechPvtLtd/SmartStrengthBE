@@ -3,24 +3,20 @@ import { PackageEntity } from '../../../utils';
 
 export class PackageResponseDto {
     id!: string;
-    packageName!: string;
+    packageType!: string;
     price!: number;
     numberOfSessions!: number;
-    validityInDays!: number;
-    bestFor!: string;
-    description!: string | null;
+    validDays!: number;
     status!: boolean;
     createdAt!: Date;
     updatedAt!: Date;
 
     constructor(packageData?: PackageEntity) {
         this.id = packageData?.id || '';
-        this.packageName = packageData?.package_name || '';
+        this.packageType = packageData?.package_type || '';
         this.price = Number(packageData?.price || 0);
         this.numberOfSessions = packageData?.number_of_sessions || 0;
-        this.validityInDays = packageData?.validity_in_days || 0;
-        this.bestFor = packageData?.best_for || '';
-        this.description = packageData?.description || null;
+        this.validDays = packageData?.valid_days || 0;
         this.status = packageData?.status || false;
         this.createdAt = packageData?.created_at!;
         this.updatedAt = packageData?.updated_at!;

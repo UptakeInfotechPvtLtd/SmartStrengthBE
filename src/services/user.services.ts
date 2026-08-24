@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcryptjs';
-import { IJwtPayload, Roles } from '../config';
+import { IJwtPayload, Roles, UserStatus } from '../config';
 import { UserListResponseDto, UserResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import {
@@ -37,41 +37,36 @@ export class UserService {
         authUser: IJwtPayload,
     ): Promise<UserResponseDto> {
         const role = await this.getRole(body.roleId);
-        this.ensureCanCreateRole(authUser?.roleName as Roles, role?.name as Roles);
-        this.validateCreatePayloadForRole(body, role.name as Roles);
+        const roleName = role.name as Roles;
+        this.ensureCanCreateRole(authUser?.roleName as Roles, roleName);
+        this.validatePayloadForRole(body, roleName, true);
+        const branchIds = this.getPayloadBranchIds(body, roleName);
+        await this.ensureBranchesAllowed(branchIds, authUser);
         await this.ensureEmailUnique(body.email);
-        await this.ensureBranchesExist(body.branchIds);
+        await this.ensurePhoneUnique(this.getPhoneNumber(body));
 
         const user = await this.userRepo.createUser({
-            full_name: body.fullName,
-            phone_no: body.contactNumber || null,
-            email: body.email,
-            password: await bcrypt.hash(body.password, 10),
-            age: role.name === Roles.User ? body.age! : null,
-            gender: role.name === Roles.User ? body.gender! : null,
-            user_type: role.name === Roles.User ? body.userType! : null,
-            profile_image_url: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
-                ? body.profileImageUrl || null
-                : null,
-            description: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
+            full_name: this.getName(body, roleName),
+            phone_no: this.getPhoneNumber(body),
+            email: body.email || null,
+            password: body.password ? await bcrypt.hash(body.password, 10) : null,
+            dob: roleName === Roles.User ? body.dob! : null,
+            gender: roleName === Roles.User ? body.gender! : null,
+            user_type: roleName === Roles.User ? body.userType! : null,
+            profile_image_url: this.getProfileImgUrl(body),
+            description: [Roles.Trainer].includes(role.name as Roles)
                 ? body.description || null
                 : null,
-            performanceMetrics:
-                role.name === Roles.User
-                    ? [
-                          {
-                              metric_date: body.performanceMetrics!.date,
-                              metrics: body.performanceMetrics!.metrics,
-                          } as UserPerformanceMetricEntity,
-                      ]
-                    : [],
-            status: [Roles.SubAdmin, Roles.Trainer].includes(role.name as Roles)
-                ? body.status!
-                : true,
+            experience_in_years:
+                roleName === Roles.Trainer && body.experienceInYears !== undefined
+                    ? body.experienceInYears.toFixed(2)
+                    : null,
+            performanceMetrics: [],
+            status: body.status ?? UserStatus.Active,
             is_email_verified: true,
-            is_terms_agreed: role.name === Roles.User,
+            is_terms_agreed: roleName === Roles.User,
             role,
-            userBranches: this.createUserBranches(body.branchIds),
+            userBranches: this.createUserBranches(branchIds),
         });
 
         return new UserResponseDto((await this.userRepo.findUserByIdWithRole(user.id)) || user);
@@ -83,34 +78,41 @@ export class UserService {
         authUser: IJwtPayload,
     ): Promise<UserResponseDto> {
         const user = await this.getUpdatableUser(params?.id, authUser);
-        if (body.branchIds) {
-            await this.ensureBranchesExist(body.branchIds);
+        const role = await this.getRole(body.roleId);
+        const roleName = role.name as Roles;
+        this.ensureCanUpdateRole(authUser?.roleName as Roles, roleName);
+        this.validatePayloadForRole(body, roleName, false);
+        const branchIds = this.getPayloadBranchIds(body, roleName);
+        if (branchIds.length) {
+            await this.ensureBranchesAllowed(branchIds, authUser);
         }
 
-        if (body.roleId !== undefined) {
-            const role = await this.getRole(body.roleId);
-            this.ensureCanUpdateRole(authUser?.roleName as Roles, role?.name as Roles);
-            user.role = role;
+        user.role = role;
+        if (this.getName(body, roleName) !== undefined)
+            user.full_name = this.getName(body, roleName)!;
+        if (this.getPhoneNumber(body) !== undefined) {
+            await this.ensurePhoneUnique(this.getPhoneNumber(body), user.id);
+            user.phone_no = this.getPhoneNumber(body) ?? null;
         }
-        if (body.fullName !== undefined) user.full_name = body.fullName;
-        if (body.contactNumber !== undefined) user.phone_no = body.contactNumber;
-        if (body.age !== undefined) user.age = body.age;
+        const email = this.getEmail(body);
+        if (email !== undefined) {
+            await this.ensureEmailUnique(email, user.id);
+            user.email = email || null;
+        }
+        if (body.dob !== undefined) user.dob = body.dob || null;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.profileImageUrl !== undefined) user.profile_image_url = body.profileImageUrl;
+        if ('profileImageUrl' in body) user.profile_image_url = body.profileImageUrl || null;
         if (body.description !== undefined) user.description = body.description;
-        if (body.performanceMetrics !== undefined) {
-            this.ensurePerformanceMetricsAllowed(user);
+        if (body.experienceInYears !== undefined) {
+            user.experience_in_years = body.experienceInYears.toFixed(2);
         }
         if (body.password !== undefined) user.password = await bcrypt.hash(body.password, 10);
         if (body.status !== undefined) user.status = body.status;
 
         const updatedUser = await this.userRepo.updateUser(user);
-        if (body.branchIds) {
-            await this.userRepo.updateUserBranches(updatedUser, body.branchIds);
-        }
-        if (body.performanceMetrics !== undefined) {
-            await this.addPerformanceMetricIfNotExists(updatedUser, body.performanceMetrics);
+        if (branchIds.length) {
+            await this.userRepo.updateUserBranches(updatedUser, branchIds);
         }
 
         return new UserResponseDto(
@@ -163,11 +165,11 @@ export class UserService {
         }
 
         if (body.fullName !== undefined) user.full_name = body.fullName;
-        if (body.contactNumber !== undefined) user.phone_no = body.contactNumber;
+        if (body.phoneNumber !== undefined) user.phone_no = body.phoneNumber;
         if (body.age !== undefined) user.age = body.age;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.profilePicUrl !== undefined) user.profile_image_url = body.profilePicUrl;
+        if (body.profileImageUrl !== undefined) user.profile_image_url = body.profileImageUrl;
         if (body.performanceMetrics !== undefined) {
             this.ensurePerformanceMetricsAllowed(user);
         }
@@ -195,9 +197,19 @@ export class UserService {
             }
         }
 
+        if (query.branchIds?.length) {
+            await this.ensureBranchesAllowed(query.branchIds, authUser);
+        }
+
+        const assignedBranchIds =
+            authUser?.roleName === Roles.SubAdmin
+                ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
+                : undefined;
+
         const { users, total, page, pageSize, offset } = await this.userRepo.listUsers(
             query,
             allowedRoles,
+            assignedBranchIds,
         );
 
         return new UserListResponseDto(
@@ -219,6 +231,10 @@ export class UserService {
             throw new UnauthorizedException(messages.cannotManageUserRole);
         }
 
+        if (authUser?.roleName === Roles.SubAdmin) {
+            await this.ensureUserWithinAssignedBranches(user, authUser);
+        }
+
         return user;
     }
 
@@ -234,9 +250,10 @@ export class UserService {
         }
 
         if (authRole === Roles.SubAdmin) {
-            if (user?.role?.name !== Roles.User) {
-                throw new UnauthorizedException(messages.subAdminCanOnlyUpdateNormalUser);
+            if (![Roles.Trainer, Roles.User].includes(user?.role?.name as Roles)) {
+                throw new UnauthorizedException(messages.cannotManageUserRole);
             }
+            await this.ensureUserWithinAssignedBranches(user, authUser);
             return user;
         }
 
@@ -276,53 +293,93 @@ export class UserService {
             return;
         }
 
-        if (authRole === Roles.SubAdmin && targetRole === Roles.User) {
+        if (authRole === Roles.SubAdmin && [Roles.Trainer, Roles.User].includes(targetRole)) {
             return;
         }
 
         throw new UnauthorizedException(messages.cannotUpdateUserRole);
     }
 
-    private validateCreatePayloadForRole(
-        body: CreateManagedUserBodyPayload,
+    private validatePayloadForRole(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
         roleName: Roles,
+        isCreate: boolean,
     ): void {
-        if ([Roles.SubAdmin, Roles.Trainer].includes(roleName) && body.status === undefined) {
-            throw new BadRequestException(messages.userStatusRequired);
-        }
+        this.ensureNoUnexpectedFields(body, roleName, isCreate);
+        if (!isCreate) return;
 
-        if ([Roles.SubAdmin, Roles.Trainer].includes(roleName)) {
-            if (!body.contactNumber) {
-                throw new BadRequestException(messages.contactNumberRequired);
+        if (roleName === Roles.SubAdmin) {
+            if (
+                !body.fullName ||
+                !this.getEmail(body) ||
+                !body.password ||
+                !body.phoneNumber ||
+                !body.branchIds
+            ) {
+                throw new BadRequestException(messages.subAdminFieldsRequired);
             }
-            return;
-        }
-
-        if (roleName === Roles.User) {
-            if (!body.contactNumber) throw new BadRequestException(messages.contactNumberRequired);
-            if (!body.confirmPassword) {
-                throw new BadRequestException(messages.confirmPasswordRequired);
+        } else if (roleName === Roles.Trainer) {
+            if (
+                !body.fullName ||
+                !body.profileImageUrl ||
+                body.experienceInYears === undefined ||
+                !body.description ||
+                !body.branchIds
+            ) {
+                throw new BadRequestException(messages.trainerFieldsRequired);
             }
-            if (body.password !== body.confirmPassword) {
-                throw new BadRequestException(messages.passwordsDoNotMatch);
-            }
-            if (!body.age || !body.gender || !body.userType || !body.performanceMetrics) {
+        } else if (roleName === Roles.User) {
+            if (
+                !body.fullName ||
+                !this.getEmail(body) ||
+                !body.phoneNumber ||
+                !body.dob ||
+                !body.gender ||
+                !body.userType ||
+                !body.password ||
+                !this.getConfirmPassword(body) ||
+                !body.branchIds
+            ) {
                 throw new BadRequestException(messages.normalUserFieldsRequired);
             }
+            if (body.password !== this.getConfirmPassword(body)) {
+                throw new BadRequestException(messages.passwordsDoNotMatch);
+            }
+        } else {
+            throw new BadRequestException(messages.invalidRoleIdProvided);
         }
     }
 
-    private async ensureEmailUnique(email: string): Promise<void> {
+    private async ensureEmailUnique(email?: string, userId?: string): Promise<void> {
+        if (!email) return;
         const existingUser = await this.userRepo.findUserByEmailWithRole(email);
-        if (existingUser) {
+        if (existingUser && existingUser.id !== userId) {
             throw new ConflictException(messages.userAlreadyRegistered);
         }
     }
 
-    private async ensureBranchesExist(branchIds: string[]): Promise<void> {
+    private async ensurePhoneUnique(phoneNumber?: string | null, userId?: string): Promise<void> {
+        if (!phoneNumber) return;
+        const existingUser = await this.userRepo.findUserByPhoneWithRole(phoneNumber);
+        if (existingUser && existingUser.id !== userId) {
+            throw new ConflictException(messages.phoneNumberAlreadyRegistered);
+        }
+    }
+
+    private async ensureBranchesAllowed(branchIds: string[], authUser: IJwtPayload): Promise<void> {
         const branches = await this.branchRepo.findActiveBranchesByIds(branchIds);
         if (branches.length !== new Set(branchIds).size) {
             throw new BadRequestException(messages.invalidBranchIds);
+        }
+
+        if (authUser?.roleName !== Roles.SubAdmin) return;
+
+        const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser?.userId);
+        const hasUnauthorizedBranch = branchIds.some(
+            (branchId) => !assignedBranchIds.includes(branchId),
+        );
+        if (hasUnauthorizedBranch) {
+            throw new BadRequestException(messages.sessionBranchNotAssignedToSubAdmin);
         }
     }
 
@@ -338,6 +395,116 @@ export class UserService {
     private ensurePerformanceMetricsAllowed(user: UserEntity): void {
         if (user?.role?.name !== Roles.User) {
             throw new BadRequestException(messages.performanceMetricsAllowedOnlyForNormalUser);
+        }
+    }
+
+    private async ensureUserWithinAssignedBranches(
+        user: UserEntity,
+        authUser: IJwtPayload,
+    ): Promise<void> {
+        const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser?.userId);
+        const userBranchIds =
+            user.userBranches?.map((userBranch) => userBranch.branch?.id).filter(Boolean) || [];
+        if (!userBranchIds.every((branchId) => assignedBranchIds.includes(branchId))) {
+            throw new UnauthorizedException(messages.cannotManageUserRole);
+        }
+    }
+
+    private getPayloadBranchIds(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+        _roleName: Roles,
+    ): string[] {
+        return body.branchIds || [];
+    }
+
+    private getName(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+        _roleName: Roles,
+    ): string | undefined {
+        return body.fullName;
+    }
+
+    private getPhoneNumber(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+    ): string | undefined {
+        return body.phoneNumber;
+    }
+
+    private getEmail(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+    ): string | undefined {
+        return (body as CreateManagedUserBodyPayload).email;
+    }
+
+    private getConfirmPassword(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+    ): string | undefined {
+        return (body as CreateManagedUserBodyPayload).confirmPassword;
+    }
+
+    private getProfileImgUrl(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+    ): string | null {
+        return body.profileImageUrl || null;
+    }
+
+    private ensureNoUnexpectedFields(
+        body: CreateManagedUserBodyPayload | UpdateManagedUserBodyPayload,
+        roleName: Roles,
+        isCreate: boolean,
+    ): void {
+        const commonFields = ['roleId', 'status'];
+        const allowedByRole: Record<string, string[]> = {
+            [Roles.SubAdmin]: [
+                ...commonFields,
+                'fullName',
+                'email',
+                'password',
+                'phoneNumber',
+                'branchIds',
+            ],
+            [Roles.Trainer]: [
+                ...commonFields,
+                'profileImageUrl',
+                'fullName',
+                'email',
+                'password',
+                'experienceInYears',
+                'description',
+                'branchIds',
+            ],
+            [Roles.User]: [
+                ...commonFields,
+                'profileImageUrl',
+                'fullName',
+                'email',
+                'phoneNumber',
+                'dob',
+                'gender',
+                'userType',
+                'password',
+                'confirmPassword',
+                'branchIds',
+            ],
+        };
+        const allowedFields = allowedByRole[roleName] || [];
+        const unexpectedFields = Object.keys(body).filter(
+            (key) => (body as any)[key] !== undefined && !allowedFields.includes(key),
+        );
+
+        if (unexpectedFields.length) {
+            throw new BadRequestException(
+                messages.unexpectedRoleFields(unexpectedFields.join(', ')),
+            );
+        }
+
+        if (
+            !isCreate &&
+            body.password &&
+            'confirmPassword' in body &&
+            body.password !== body.confirmPassword
+        ) {
+            throw new BadRequestException(messages.passwordsDoNotMatch);
         }
     }
 

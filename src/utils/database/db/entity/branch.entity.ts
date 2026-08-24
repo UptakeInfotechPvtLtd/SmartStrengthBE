@@ -13,7 +13,7 @@ import { SessionBranchEntity } from './session-branch.entity';
 import { UserBranchEntity } from './user-branch.entity';
 
 @Entity('Branches')
-@Index('IDX_branches_name', ['name'])
+@Index('IDX_branches_branch_name', ['branch_name'])
 @Index('IDX_branches_status', ['status'])
 @Index('IDX_branches_deleted_at', ['deleted_at'])
 @Index('IDX_branches_created_at', ['created_at'])
@@ -22,13 +22,10 @@ export class BranchEntity {
     id!: string;
 
     @Column({ type: 'varchar', length: 150 })
-    name!: string;
-
-    @Column({ type: 'varchar', length: 20, nullable: true })
-    contact_number!: string | null;
+    branch_name!: string;
 
     @Column({ type: 'text', nullable: true })
-    map_link!: string | null;
+    map_url!: string | null;
 
     @Column({ type: 'text', nullable: true })
     address!: string | null;
@@ -38,9 +35,6 @@ export class BranchEntity {
 
     @Column({ type: 'time', nullable: true })
     closing_time!: string | null;
-
-    @Column({ type: 'jsonb', nullable: true, default: () => "'[]'" })
-    branch_images!: string[];
 
     @Column({ type: 'varchar', length: 30, default: BranchStatus.Active })
     status!: BranchStatus;

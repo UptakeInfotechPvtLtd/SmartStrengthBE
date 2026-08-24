@@ -32,7 +32,12 @@ const validate =
 
             if (schema.query) {
                 const parsedQuery = schema.query.parse(req.query);
-                Object.assign(req.query, parsedQuery);
+                Object.defineProperty(req, 'query', {
+                    value: parsedQuery,
+                    writable: true,
+                    configurable: true,
+                    enumerable: true,
+                });
             }
 
             if (schema.file) {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 import { CmsController } from '../controllers';
-import { cmsService, routeHandler, verifyToken } from '../utils';
+import { cmsService, requireAccessPermission, routeHandler, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createVideoLibrarySchema,
@@ -13,36 +13,40 @@ import {
 const router = Router();
 
 const cmsController = new CmsController(cmsService);
-const manageRoles = [Roles.Admin, Roles.SubAdmin];
-const viewRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/video-library',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Create),
     validate(createVideoLibrarySchema),
     routeHandler(cmsController.addVideo),
 );
 router.get(
     '/video-library',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Read),
     validate(listVideoLibrarySchema),
     routeHandler(cmsController.listVideos),
 );
 router.get(
     '/video-library/:id',
-    verifyToken(viewRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Read),
     validate(videoLibraryIdSchema),
     routeHandler(cmsController.viewVideo),
 );
 router.put(
     '/video-library/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Update),
     validate(updateVideoLibrarySchema),
     routeHandler(cmsController.updateVideo),
 );
 router.delete(
     '/video-library/:id',
-    verifyToken(manageRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Delete),
     validate(videoLibraryIdSchema),
     routeHandler(cmsController.deleteVideo),
 );

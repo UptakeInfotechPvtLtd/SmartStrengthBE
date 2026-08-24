@@ -1,4 +1,4 @@
-import { Gender, UserType } from '../../../config';
+import { Gender, UserStatus, UserType } from '../../../config';
 import { RoleEntity, UserEntity } from '../../../utils';
 import { UserPerformanceMetricResponseDto } from '../../user';
 
@@ -26,7 +26,7 @@ export class AddUserResponseDto {
     performanceMetrics!: UserPerformanceMetricResponseDto[];
     isTermsAgreed!: boolean;
     isEmailVerified!: boolean;
-    status!: boolean;
+    status!: UserStatus;
     role!: RoleResponse | null;
     createdAt!: Date;
     updatedAt!: Date;
@@ -49,7 +49,7 @@ export class AddUserResponseDto {
             ) || [];
         this.isTermsAgreed = user?.is_terms_agreed ?? false;
         this.isEmailVerified = user?.is_email_verified ?? true;
-        this.status = user?.status || false;
+        this.status = user?.status || UserStatus.Active;
         this.role = user?.role ? new RoleResponse(user?.role) : null;
         this.createdAt = user?.created_at!;
         this.updatedAt = user?.updated_at!;

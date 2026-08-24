@@ -2,10 +2,11 @@ import { z } from 'zod';
 import { validationMessages } from '../lang/api-messages';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const requiredString = (message: string) => z.string({ message }).trim().min(1, { message });
+const requiredString = (message: string) =>
+    z.string({ error: message }).trim().min(1, { error: message });
 const optionalString = (message: string) =>
     z
-        .union([z.string({ message }).trim(), z.null()])
+        .union([z.string({ error: message }).trim(), z.null()])
         .optional()
         .transform((value) => (value === null ? undefined : value));
 const statusSchema = z.preprocess(
@@ -14,38 +15,53 @@ const statusSchema = z.preprocess(
         if (value === 'false') return false;
         return value;
     },
-    z.boolean({ message: validationMessages.common.statusBoolean }).optional(),
+    z.boolean({ error: validationMessages.common.statusBoolean }).optional(),
+);
+const isSachinStatusSchema = z
+    .boolean({ error: validationMessages.session.isSachinStatusBoolean })
+    .optional();
+const isSachinStatusQuerySchema = z.preprocess(
+    (value) => {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        return value;
+    },
+    z.boolean({ error: validationMessages.session.isSachinStatusBoolean }).optional(),
 );
 const branchIdsSchema = z
     .array(
         z.string().refine((value) => uuidRegex.test(value), {
-            message: validationMessages.session.branchIdInvalid,
+            error: validationMessages.session.branchIdInvalid,
         }),
     )
-    .min(1, validationMessages.session.branchIdsRequired)
+    .min(1, { error: validationMessages.session.branchIdsRequired })
     .refine((ids) => new Set(ids).size === ids.length, {
-        message: validationMessages.session.branchIdsUnique,
+        error: validationMessages.session.branchIdsUnique,
     });
 
 const sessionBodyObjectSchema = z
     .object({
-        sessionName: requiredString(validationMessages.session.sessionNameRequired).max(
-            150,
-            validationMessages.session.sessionNameMaxLength,
-        ),
+        sessionName: requiredString(validationMessages.session.sessionNameRequired).max(150, {
+            error: validationMessages.session.sessionNameMaxLength,
+        }),
         price: z.coerce
-            .number({ message: validationMessages.session.priceNumber })
-            .min(0, validationMessages.session.priceMin),
-        duration: z.coerce
-            .number({ message: validationMessages.session.durationNumber })
-            .int(validationMessages.session.durationInteger)
-            .min(1, validationMessages.session.durationMin),
+            .number({ error: validationMessages.session.priceNumber })
+            .min(0, { error: validationMessages.session.priceMin }),
         description: optionalString(validationMessages.session.descriptionString).pipe(
-            z.string().max(1000, validationMessages.session.descriptionMaxLength).optional(),
+            z
+                .string()
+                .max(1000, { error: validationMessages.session.descriptionMaxLength })
+                .optional(),
         ),
+        isSachinStatus: isSachinStatusSchema.default(false),
         branchIds: branchIdsSchema,
-        status: statusSchema,
     })
+    .strict();
+
+const updateSessionBodyObjectSchema = sessionBodyObjectSchema
+    .omit({ isSachinStatus: true })
+    .extend({ isSachinStatus: isSachinStatusSchema })
+    .partial()
     .strict();
 
 export const createSessionSchema = {
@@ -56,17 +72,17 @@ export const updateSessionSchema = {
     params: z
         .object({
             id: z.string().refine((value) => uuidRegex.test(value), {
-                message: validationMessages.session.sessionIdInvalid,
+                error: validationMessages.session.sessionIdInvalid,
             }),
         })
         .strict(),
-    body: sessionBodyObjectSchema.partial().strict(),
+    body: updateSessionBodyObjectSchema,
 };
 
 export const updateSessionStatusSchema = {
     params: updateSessionSchema.params,
     body: z
-        .object({ status: z.boolean({ message: validationMessages.common.statusBoolean }) })
+        .object({ status: z.boolean({ error: validationMessages.common.statusBoolean }) })
         .strict(),
 };
 
@@ -80,17 +96,21 @@ export const listSessionsSchema = {
             page: z.coerce.number().int().positive().optional(),
             pageSize: z.coerce.number().int().positive().max(100).optional(),
             search: optionalString(validationMessages.session.searchString).pipe(
-                z.string().max(255, validationMessages.session.searchMaxLength).optional(),
+                z
+                    .string()
+                    .max(255, { error: validationMessages.session.searchMaxLength })
+                    .optional(),
             ),
             branchId: z
                 .string()
                 .refine((value) => uuidRegex.test(value), {
-                    message: validationMessages.session.branchIdInvalid,
+                    error: validationMessages.session.branchIdInvalid,
                 })
                 .optional(),
             status: statusSchema,
+            isSachinStatus: isSachinStatusQuerySchema,
             orderBy: z
-                .enum(['session_name', 'price', 'duration', 'created_at', 'updated_at'])
+                .enum(['session_name', 'price', 'is_sachin_status', 'created_at', 'updated_at'])
                 .optional()
                 .default('created_at'),
             order: z

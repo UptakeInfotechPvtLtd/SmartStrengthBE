@@ -10,7 +10,7 @@ import {
     UpdateDateColumn,
     DeleteDateColumn,
 } from 'typeorm';
-import { Gender, UserType } from '../../../../config/enum';
+import { Gender, UserStatus, UserType } from '../../../../config/enum';
 import { RoleEntity } from './roles.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
 import { UserBranchEntity } from './user-branch.entity';
@@ -38,14 +38,17 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 200, nullable: true })
     full_name!: string | null;
 
-    @Column({ type: 'varchar', length: 255 })
-    email!: string;
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    email!: string | null;
 
     @Column({ type: 'varchar', length: 400, nullable: true })
     password!: string | null;
 
     @Column({ type: 'int', nullable: true })
     age!: number | null;
+
+    @Column({ type: 'date', nullable: true })
+    dob!: string | null;
 
     @Column({ type: 'varchar', length: 10, nullable: true })
     gender!: Gender | null;
@@ -61,6 +64,9 @@ export class UserEntity {
 
     @Column({ type: 'text', nullable: true })
     description!: string | null;
+
+    @Column({ type: 'numeric', precision: 5, scale: 2, nullable: true })
+    experience_in_years!: string | null;
 
     @Column({ type: 'boolean', default: false })
     is_terms_agreed!: boolean;
@@ -80,8 +86,8 @@ export class UserEntity {
     @Column({ type: 'boolean', default: false })
     is_email_verified!: boolean;
 
-    @Column({ type: 'boolean', default: true })
-    status!: boolean;
+    @Column({ type: 'varchar', length: 10, default: UserStatus.Active })
+    status!: UserStatus;
 
     @Column({ type: 'varchar', length: 10, nullable: true })
     forgot_password_otp!: string | null;

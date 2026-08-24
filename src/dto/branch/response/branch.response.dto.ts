@@ -3,26 +3,22 @@ import { BranchEntity } from '../../../utils';
 
 export class BranchResponseDto {
     id!: string;
-    name!: string;
-    contactNumber!: string | null;
-    mapLink!: string | null;
+    branchName!: string;
+    mapUrl!: string | null;
     address!: string | null;
     openingTime!: string | null;
     closingTime!: string | null;
-    branchImages!: string[];
     status!: BranchStatus;
     createdAt!: Date;
     updatedAt!: Date;
 
     constructor(branch?: BranchEntity) {
         this.id = branch?.id || '';
-        this.name = branch?.name || '';
-        this.contactNumber = branch?.contact_number || null;
-        this.mapLink = branch?.map_link || null;
+        this.branchName = branch?.branch_name || '';
+        this.mapUrl = branch?.map_url || null;
         this.address = branch?.address || null;
         this.openingTime = this.formatTime(branch?.opening_time || null);
         this.closingTime = this.formatTime(branch?.closing_time || null);
-        this.branchImages = branch?.branch_images || [];
         this.status = branch?.status || BranchStatus.Active;
         this.createdAt = branch?.created_at!;
         this.updatedAt = branch?.updated_at!;
@@ -36,7 +32,7 @@ export class BranchResponseDto {
         const [hourValue, minuteValue] = time.split(':');
         const hour = Number(hourValue);
         const suffix = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
+        const displayHour = String(hour % 12 || 12).padStart(2, '0');
 
         return `${displayHour}:${minuteValue} ${suffix}`;
     }

@@ -6,8 +6,8 @@ export class SessionResponseDto {
     id!: string;
     sessionName!: string;
     price!: number;
-    duration!: number;
     description!: string | null;
+    isSachinStatus!: boolean;
     branches!: BranchResponseDto[];
     status!: boolean;
     createdAt!: Date;
@@ -17,8 +17,8 @@ export class SessionResponseDto {
         this.id = session?.id || '';
         this.sessionName = session?.session_name || '';
         this.price = Number(session?.price || 0);
-        this.duration = session?.duration || 0;
         this.description = session?.description || null;
+        this.isSachinStatus = session?.is_sachin_status || false;
         this.branches =
             session?.sessionBranches
                 ?.map((sessionBranch) =>
