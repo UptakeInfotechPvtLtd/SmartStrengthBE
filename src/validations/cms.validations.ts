@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Difficulty, MuscleGroup, VideoSource, VideoStatus } from '../config';
+import { VideoSource, VideoStatus } from '../config';
 import { validationMessages } from '../lang/api-messages';
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -19,28 +19,28 @@ const booleanSchema = z
         return value;
     });
 
-const targetMuscleSchema = z
-    .array(
-        requiredString(validationMessages.cms.targetMuscleString).max(100, {
-            error: validationMessages.cms.targetMuscleMaxLength,
-        }),
-    )
-    .min(1, { error: validationMessages.cms.targetMuscleRequired });
-
 const videoBodyObjectSchema = z
     .object({
-        exerciseName: requiredString(validationMessages.cms.exerciseNameRequired).max(150, {
-            error: validationMessages.cms.exerciseNameMaxLength,
+        title: requiredString(validationMessages.cms.titleRequired).max(150, {
+            error: validationMessages.cms.titleMaxLength,
         }),
-        videoUrl: requiredString(validationMessages.cms.videoUrlRequired).max(1000, {
-            error: validationMessages.cms.videoUrlMaxLength,
+        targetMuscleGroup: requiredString(validationMessages.cms.targetMuscleGroupRequired).max(
+            150,
+            {
+                error: validationMessages.cms.targetMuscleGroupMaxLength,
+            },
+        ),
+        description: requiredString(validationMessages.cms.descriptionRequired).max(5000, {
+            error: validationMessages.cms.descriptionMaxLength,
         }),
-        muscleGroup: z.enum(MuscleGroup, { error: validationMessages.cms.muscleGroupInvalid }),
-        difficulty: z.enum(Difficulty, { error: validationMessages.cms.difficultyInvalid }),
+        guidline: requiredString(validationMessages.cms.guidlineRequired).max(5000, {
+            error: validationMessages.cms.guidlineMaxLength,
+        }),
         videoSource: z.enum(VideoSource, { error: validationMessages.cms.videoSourceInvalid }),
-        targetMuscle: targetMuscleSchema,
-        status: z.enum(VideoStatus, { error: validationMessages.cms.videoStatusInvalid }),
-        membersOnly: z.boolean({ error: validationMessages.cms.membersOnlyBoolean }),
+        videoUrl: z
+            .url({ error: validationMessages.cms.videoUrlInvalid })
+            .max(1000, { error: validationMessages.cms.videoUrlMaxLength }),
+        activeMemberOnly: z.boolean({ error: validationMessages.cms.activeMemberOnlyBoolean }),
     })
     .strict();
 
@@ -63,6 +63,15 @@ export const videoLibraryIdSchema = {
     params: updateVideoLibrarySchema.params,
 };
 
+export const updateVideoLibraryStatusSchema = {
+    params: updateVideoLibrarySchema.params,
+    body: z
+        .object({
+            status: z.enum(VideoStatus, { error: validationMessages.cms.videoStatusInvalid }),
+        })
+        .strict(),
+};
+
 export const listVideoLibrarySchema = {
     query: z
         .object({
@@ -71,25 +80,18 @@ export const listVideoLibrarySchema = {
             search: optionalString(validationMessages.cms.searchString).pipe(
                 z.string().max(255, { error: validationMessages.cms.searchMaxLength }).optional(),
             ),
-            muscleGroup: z
-                .enum(MuscleGroup, { error: validationMessages.cms.muscleGroupInvalid })
-                .optional(),
-            difficulty: z
-                .enum(Difficulty, { error: validationMessages.cms.difficultyInvalid })
-                .optional(),
+            targetMuscleGroup: optionalString(validationMessages.cms.targetMuscleGroupString).pipe(
+                z
+                    .string()
+                    .max(150, { error: validationMessages.cms.targetMuscleGroupMaxLength })
+                    .optional(),
+            ),
             status: z
                 .enum(VideoStatus, { error: validationMessages.cms.videoStatusInvalid })
                 .optional(),
-            membersOnly: booleanSchema,
+            activeMemberOnly: booleanSchema,
             orderBy: z
-                .enum([
-                    'exercise_name',
-                    'muscle_group',
-                    'difficulty',
-                    'status',
-                    'created_at',
-                    'updated_at',
-                ])
+                .enum(['title', 'target_muscle_group', 'status', 'created_at', 'updated_at'])
                 .optional()
                 .default('created_at'),
             order: z
@@ -103,5 +105,8 @@ export const listVideoLibrarySchema = {
 
 export type CreateVideoLibraryBodyPayload = z.infer<typeof createVideoLibrarySchema.body>;
 export type UpdateVideoLibraryBodyPayload = z.infer<typeof updateVideoLibrarySchema.body>;
+export type UpdateVideoLibraryStatusBodyPayload = z.infer<
+    typeof updateVideoLibraryStatusSchema.body
+>;
 export type VideoLibraryIdParamsPayload = z.infer<typeof videoLibraryIdSchema.params>;
 export type FetchVideoLibraryQueryPayload = z.infer<typeof listVideoLibrarySchema.query>;

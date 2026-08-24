@@ -6,6 +6,7 @@ import {
     CreateVideoLibraryBodyPayload,
     FetchVideoLibraryQueryPayload,
     UpdateVideoLibraryBodyPayload,
+    UpdateVideoLibraryStatusBodyPayload,
     VideoLibraryIdParamsPayload,
 } from '../validations';
 
@@ -14,14 +15,14 @@ export class CmsService {
 
     async addVideo(body: CreateVideoLibraryBodyPayload): Promise<VideoLibraryResponseDto> {
         const video = await this.cmsRepo.createVideo({
-            exercise_name: body.exerciseName,
-            video_url: body.videoUrl,
-            muscle_group: body.muscleGroup,
-            difficulty: body.difficulty,
+            title: body.title,
+            target_muscle_group: body.targetMuscleGroup,
+            description: body.description,
+            guidline: body.guidline,
             video_source: body.videoSource,
-            target_muscle: body.targetMuscle,
-            status: body.status,
-            members_only: body.membersOnly,
+            video_url: body.videoUrl,
+            active_member_only: body.activeMemberOnly,
+            status: VideoStatus.Active,
         });
 
         return new VideoLibraryResponseDto(video);
@@ -33,14 +34,27 @@ export class CmsService {
     ): Promise<VideoLibraryResponseDto> {
         const video = await this.getVideo(params.id);
 
-        if (body.exerciseName !== undefined) video.exercise_name = body.exerciseName;
-        if (body.videoUrl !== undefined) video.video_url = body.videoUrl;
-        if (body.muscleGroup !== undefined) video.muscle_group = body.muscleGroup;
-        if (body.difficulty !== undefined) video.difficulty = body.difficulty;
+        if (body.title !== undefined) video.title = body.title;
+        if (body.targetMuscleGroup !== undefined) {
+            video.target_muscle_group = body.targetMuscleGroup;
+        }
+        if (body.description !== undefined) video.description = body.description;
+        if (body.guidline !== undefined) video.guidline = body.guidline;
         if (body.videoSource !== undefined) video.video_source = body.videoSource;
-        if (body.targetMuscle !== undefined) video.target_muscle = body.targetMuscle;
-        if (body.status !== undefined) video.status = body.status;
-        if (body.membersOnly !== undefined) video.members_only = body.membersOnly;
+        if (body.videoUrl !== undefined) video.video_url = body.videoUrl;
+        if (body.activeMemberOnly !== undefined) {
+            video.active_member_only = body.activeMemberOnly;
+        }
+
+        return new VideoLibraryResponseDto(await this.cmsRepo.updateVideo(video));
+    }
+
+    async updateVideoStatus(
+        params: VideoLibraryIdParamsPayload,
+        body: UpdateVideoLibraryStatusBodyPayload,
+    ): Promise<VideoLibraryResponseDto> {
+        const video = await this.getVideo(params.id);
+        video.status = body.status;
 
         return new VideoLibraryResponseDto(await this.cmsRepo.updateVideo(video));
     }
@@ -85,7 +99,7 @@ export class CmsService {
     }
 
     private ensureCanViewVideo(status: VideoStatus, roleName: Roles): void {
-        if (status === VideoStatus.Published) {
+        if (status === VideoStatus.Active) {
             return;
         }
 
@@ -93,6 +107,6 @@ export class CmsService {
             return;
         }
 
-        throw new UnauthorizedException(messages.cannotViewDraftVideo);
+        throw new UnauthorizedException(messages.cannotViewInactiveVideo);
     }
 }

@@ -91,6 +91,6 @@ export enum VideoSource {
 }
 
 export enum VideoStatus {
-    Published = 'published',
-    Draft = 'draft',
+    Active = 'active',
+    Inactive = 'inactive',
 }

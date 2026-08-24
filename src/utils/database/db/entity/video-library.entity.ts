@@ -7,12 +7,11 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
-import { Difficulty, MuscleGroup, VideoSource, VideoStatus } from '../../../../config/enum';
+import { VideoSource, VideoStatus } from '../../../../config/enum';
 
 @Entity('VideoLibrary')
-@Index('IDX_video_library_exercise_name', ['exercise_name'])
-@Index('IDX_video_library_muscle_group', ['muscle_group'])
-@Index('IDX_video_library_difficulty', ['difficulty'])
+@Index('IDX_video_library_title', ['title'])
+@Index('IDX_video_library_target_muscle_group', ['target_muscle_group'])
 @Index('IDX_video_library_status', ['status'])
 @Index('IDX_video_library_deleted_at', ['deleted_at'])
 @Index('IDX_video_library_created_at', ['created_at'])
@@ -21,28 +20,28 @@ export class VideoLibraryEntity {
     id!: string;
 
     @Column({ type: 'varchar', length: 150 })
-    exercise_name!: string;
-
-    @Column({ type: 'text' })
-    video_url!: string;
-
-    @Column({ type: 'varchar', length: 50 })
-    muscle_group!: MuscleGroup;
-
-    @Column({ type: 'varchar', length: 50 })
-    difficulty!: Difficulty;
+    title!: string;
 
     @Column({ type: 'varchar', length: 50 })
     video_source!: VideoSource;
 
-    @Column({ type: 'jsonb', default: [] })
-    target_muscle!: string[];
+    @Column({ type: 'text' })
+    video_url!: string;
 
-    @Column({ type: 'varchar', length: 20, default: VideoStatus.Draft })
+    @Column({ type: 'varchar', length: 150 })
+    target_muscle_group!: string;
+
+    @Column({ type: 'text' })
+    description!: string;
+
+    @Column({ type: 'text' })
+    guidline!: string;
+
+    @Column({ type: 'varchar', length: 20, default: VideoStatus.Active })
     status!: VideoStatus;
 
     @Column({ type: 'boolean', default: false })
-    members_only!: boolean;
+    active_member_only!: boolean;
 
     @CreateDateColumn({ type: 'timestamp' })
     created_at!: Date;

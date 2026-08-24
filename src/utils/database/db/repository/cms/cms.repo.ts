@@ -46,41 +46,48 @@ export class CmsRepository extends Repository<VideoLibraryEntity> {
                 if (query.search) {
                     queryBuilder.andWhere(
                         new Brackets((qb) => {
-                            qb.where('video.exercise_name ILIKE :search', {
+                            qb.where('video.title ILIKE :search', {
                                 search: `%${query.search}%`,
-                            }).orWhere('video.video_url ILIKE :search', {
-                                search: `%${query.search}%`,
-                            });
+                            })
+                                .orWhere('video.target_muscle_group ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('video.description ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('video.guidline ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('video.video_source ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('video.video_url ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                });
                         }),
                     );
                 }
 
-                if (query.muscleGroup) {
-                    queryBuilder.andWhere('video.muscle_group = :muscleGroup', {
-                        muscleGroup: query.muscleGroup,
+                if (query.targetMuscleGroup) {
+                    queryBuilder.andWhere('video.target_muscle_group ILIKE :targetMuscleGroup', {
+                        targetMuscleGroup: `%${query.targetMuscleGroup}%`,
                     });
                 }
 
-                if (query.difficulty) {
-                    queryBuilder.andWhere('video.difficulty = :difficulty', {
-                        difficulty: query.difficulty,
+                if (typeof query.activeMemberOnly === 'boolean') {
+                    queryBuilder.andWhere('video.active_member_only = :activeMemberOnly', {
+                        activeMemberOnly: query.activeMemberOnly,
                     });
                 }
 
-                if (query.membersOnly) {
-                    queryBuilder.andWhere('video.members_only = :membersOnly', {
-                        membersOnly: query.membersOnly,
-                    });
-                }
-
-                const canViewDraft = [Roles.Admin, Roles.SubAdmin].includes(roleName);
+                const canViewInactive = [Roles.Admin, Roles.SubAdmin].includes(roleName);
                 if (query.status) {
                     queryBuilder.andWhere('video.status = :status', { status: query.status });
                 }
 
-                if (!canViewDraft) {
-                    queryBuilder.andWhere('video.status = :publishedStatus', {
-                        publishedStatus: VideoStatus.Published,
+                if (!canViewInactive) {
+                    queryBuilder.andWhere('video.status = :activeStatus', {
+                        activeStatus: VideoStatus.Active,
                     });
                 }
 

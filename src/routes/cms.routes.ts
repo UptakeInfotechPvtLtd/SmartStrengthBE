@@ -7,6 +7,7 @@ import {
     createVideoLibrarySchema,
     listVideoLibrarySchema,
     updateVideoLibrarySchema,
+    updateVideoLibraryStatusSchema,
     videoLibraryIdSchema,
 } from '../validations';
 
@@ -42,6 +43,13 @@ router.put(
     requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Update),
     validate(updateVideoLibrarySchema),
     routeHandler(cmsController.updateVideo),
+);
+router.patch(
+    '/video-library/:id/status',
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.VideoManagement, AccessPermission.Update),
+    validate(updateVideoLibraryStatusSchema),
+    routeHandler(cmsController.updateVideoStatus),
 );
 router.delete(
     '/video-library/:id',

@@ -6,6 +6,7 @@ import {
     CreateVideoLibraryBodyPayload,
     FetchVideoLibraryQueryPayload,
     UpdateVideoLibraryBodyPayload,
+    UpdateVideoLibraryStatusBodyPayload,
     VideoLibraryIdParamsPayload,
 } from '../validations';
 
@@ -15,6 +16,7 @@ export class CmsController {
         this.listVideos = this.listVideos.bind(this);
         this.viewVideo = this.viewVideo.bind(this);
         this.updateVideo = this.updateVideo.bind(this);
+        this.updateVideoStatus = this.updateVideoStatus.bind(this);
         this.deleteVideo = this.deleteVideo.bind(this);
     }
 
@@ -38,6 +40,16 @@ export class CmsController {
     ) {
         const result = await this.cmsService.updateVideo(req.params, req.body);
         return new BaseResponseDto(messages.videoUpdatedSuccessfully, result);
+    }
+
+    async updateVideoStatus(
+        req: IAuthenticatedRequest<
+            VideoLibraryIdParamsPayload,
+            UpdateVideoLibraryStatusBodyPayload
+        >,
+    ) {
+        const result = await this.cmsService.updateVideoStatus(req.params, req.body);
+        return new BaseResponseDto(messages.videoStatusUpdatedSuccessfully, result);
     }
 
     async deleteVideo(req: IAuthenticatedRequest<VideoLibraryIdParamsPayload>) {

@@ -1,35 +1,29 @@
-import {
-    Difficulty,
-    IPaginationMeta,
-    MuscleGroup,
-    VideoSource,
-    VideoStatus,
-} from '../../../config';
+import { IPaginationMeta, VideoSource, VideoStatus } from '../../../config';
 import { VideoLibraryEntity } from '../../../utils';
 
 export class VideoLibraryResponseDto {
     id!: string;
-    exerciseName!: string;
-    videoUrl!: string;
-    muscleGroup!: MuscleGroup;
-    difficulty!: Difficulty;
+    title!: string;
+    targetMuscleGroup!: string;
+    description!: string;
+    guidline!: string;
     videoSource!: VideoSource;
-    targetMuscle!: string[];
+    videoUrl!: string;
     status!: VideoStatus;
-    membersOnly!: boolean;
+    activeMemberOnly!: boolean;
     createdAt!: Date;
     updatedAt!: Date;
 
     constructor(video?: VideoLibraryEntity) {
         this.id = video?.id || '';
-        this.exerciseName = video?.exercise_name || '';
-        this.videoUrl = video?.video_url || '';
-        this.muscleGroup = video?.muscle_group!;
-        this.difficulty = video?.difficulty!;
+        this.title = video?.title || '';
+        this.targetMuscleGroup = video?.target_muscle_group || '';
+        this.description = video?.description || '';
+        this.guidline = video?.guidline || '';
         this.videoSource = video?.video_source!;
-        this.targetMuscle = video?.target_muscle || [];
-        this.status = video?.status || VideoStatus.Draft;
-        this.membersOnly = video?.members_only ?? false;
+        this.videoUrl = video?.video_url || '';
+        this.status = video?.status || VideoStatus.Active;
+        this.activeMemberOnly = video?.active_member_only ?? false;
         this.createdAt = video?.created_at!;
         this.updatedAt = video?.updated_at!;
     }
