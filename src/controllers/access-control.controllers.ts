@@ -2,12 +2,17 @@ import { IAuthenticatedRequest } from '../config';
 import { BaseResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import { AccessControlService } from '../services';
-import { GetAccessConfigQueryPayload, UpsertAccessConfigBodyPayload } from '../validations';
+import {
+    GetAccessConfigQueryPayload,
+    RoleAccessConfigParamsPayload,
+    UpsertAccessConfigBodyPayload,
+} from '../validations';
 
 export class AccessControlController {
     constructor(private readonly accessControlService: AccessControlService) {
         this.getModules = this.getModules.bind(this);
         this.getAccessConfig = this.getAccessConfig.bind(this);
+        this.getRoleAccessConfig = this.getRoleAccessConfig.bind(this);
         this.getMyAccessConfig = this.getMyAccessConfig.bind(this);
         this.upsertAccessConfig = this.upsertAccessConfig.bind(this);
     }
@@ -19,6 +24,11 @@ export class AccessControlController {
 
     async getAccessConfig(req: IAuthenticatedRequest<any, any, GetAccessConfigQueryPayload>) {
         const result = await this.accessControlService.getAccessConfig(req.query, req.user);
+        return new BaseResponseDto('', result);
+    }
+
+    async getRoleAccessConfig(req: IAuthenticatedRequest<RoleAccessConfigParamsPayload>) {
+        const result = await this.accessControlService.getRoleAccessConfig(req.params, req.user);
         return new BaseResponseDto('', result);
     }
 

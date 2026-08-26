@@ -9,6 +9,7 @@ import {
     UserRepository,
 } from '../utils';
 import { GetAccessConfigQueryPayload, UpsertAccessConfigBodyPayload } from '../validations';
+import { RoleAccessConfigParamsPayload } from '../validations/access-control.validations';
 
 export class AccessControlService {
     constructor(
@@ -31,6 +32,18 @@ export class AccessControlService {
         const modules = await this.ensureModules();
         const role = await this.getRole(query.roleId);
         const accessControls = await this.accessControlRepo.findAccessConfig(query.roleId);
+
+        return new AccessControlConfigResponseDto(modules, accessControls, role);
+    }
+
+    async getRoleAccessConfig(
+        params: RoleAccessConfigParamsPayload,
+        authUser: IJwtPayload,
+    ): Promise<AccessControlConfigResponseDto> {
+        this.ensureAccessConfigViewer(authUser);
+        const modules = await this.ensureModules();
+        const role = await this.getRole(params.roleId);
+        const accessControls = await this.accessControlRepo.findAccessConfig(params.roleId);
 
         return new AccessControlConfigResponseDto(modules, accessControls, role);
     }
@@ -80,6 +93,12 @@ export class AccessControlService {
     private ensureMasterAdmin(authUser: IJwtPayload): void {
         if (authUser?.roleName !== Roles.Admin) {
             throw new ForbiddenException(messages.accessControlMasterAdminOnly);
+        }
+    }
+
+    private ensureAccessConfigViewer(authUser: IJwtPayload): void {
+        if (authUser?.roleName !== Roles.Admin && authUser?.roleName !== Roles.SubAdmin) {
+            throw new ForbiddenException(messages.forbidden);
         }
     }
 

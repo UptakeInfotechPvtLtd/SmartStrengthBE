@@ -38,5 +38,14 @@ export const upsertAccessConfigSchema = {
         .strict(),
 };
 
+export const roleAccessConfigSchema = {
+    params: z
+        .object({
+            roleId: uuidSchema(validationMessages.accessControl.roleIdInvalid),
+        })
+        .strict(),
+};
+
 export type GetAccessConfigQueryPayload = z.infer<typeof getAccessConfigSchema.query>;
 export type UpsertAccessConfigBodyPayload = z.infer<typeof upsertAccessConfigSchema.body>;
+export type RoleAccessConfigParamsPayload = z.infer<typeof roleAccessConfigSchema.params>;
