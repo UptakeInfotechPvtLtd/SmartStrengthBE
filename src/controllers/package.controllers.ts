@@ -4,8 +4,10 @@ import { messages } from '../lang/api-messages';
 import { PackageService } from '../services';
 import {
     CreatePackageBodyPayload,
+    FetchPackagePurchasesQueryPayload,
     FetchPackagesQueryPayload,
     PackageIdParamsPayload,
+    PurchasePackageBodyPayload,
     UpdatePackageBodyPayload,
     UpdatePackageStatusBodyPayload,
 } from '../validations';
@@ -18,6 +20,8 @@ export class PackageController {
         this.deletePackage = this.deletePackage.bind(this);
         this.getPackageById = this.getPackageById.bind(this);
         this.listPackages = this.listPackages.bind(this);
+        this.purchasePackage = this.purchasePackage.bind(this);
+        this.listPackagePurchases = this.listPackagePurchases.bind(this);
     }
 
     async createPackage(req: IAuthenticatedRequest<any, CreatePackageBodyPayload>) {
@@ -52,5 +56,17 @@ export class PackageController {
     async listPackages(req: IAuthenticatedRequest<any, any, FetchPackagesQueryPayload>) {
         const result = await this.packageService.listPackages(req.query);
         return new BaseResponseDto('', result);
+    }
+
+    async purchasePackage(req: IAuthenticatedRequest<any, PurchasePackageBodyPayload>) {
+        const result = await this.packageService.purchasePackage(req.body, req.user);
+        return new BaseResponseDto(messages.packagePurchasedSuccessfully, result);
+    }
+
+    async listPackagePurchases(
+        req: IAuthenticatedRequest<any, any, FetchPackagePurchasesQueryPayload>,
+    ) {
+        const result = await this.packageService.listPackagePurchases(req.query);
+        return new BaseResponseDto(messages.packagePurchasesFetchedSuccessfully, result);
     }
 }

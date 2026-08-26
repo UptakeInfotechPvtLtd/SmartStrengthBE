@@ -7,14 +7,17 @@ import {
     createPackageSchema,
     listPackagesSchema,
     packageIdSchema,
+    listPackagePurchasesSchema,
     updatePackageSchema,
     updatePackageStatusSchema,
+    purchasePackageSchema,
 } from '../validations';
 
 const router = Router();
 
 const packageController = new PackageController(packageService);
 const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+const purchaseViewRoles = [Roles.Admin, Roles.SubAdmin];
 
 router.post(
     '/',
@@ -29,6 +32,19 @@ router.get(
     requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
     validate(listPackagesSchema),
     routeHandler(packageController.listPackages),
+);
+router.post(
+    '/purchase',
+    verifyToken([Roles.User]),
+    validate(purchasePackageSchema),
+    routeHandler(packageController.purchasePackage),
+);
+router.get(
+    '/purchases',
+    verifyToken(purchaseViewRoles),
+    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
+    validate(listPackagePurchasesSchema),
+    routeHandler(packageController.listPackagePurchases),
 );
 router.get(
     '/:id',

@@ -6,7 +6,9 @@ import {
     Index,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import { UserPackageEntity } from './user-package.entity';
 
 @Entity('Packages')
 @Index('IDX_packages_type_active_unique', ['package_type'], {
@@ -44,4 +46,7 @@ export class PackageEntity {
 
     @DeleteDateColumn({ type: 'timestamp', nullable: true })
     deleted_at!: Date | null;
+
+    @OneToMany(() => UserPackageEntity, (userPackage) => userPackage.package)
+    userPackages!: UserPackageEntity[];
 }

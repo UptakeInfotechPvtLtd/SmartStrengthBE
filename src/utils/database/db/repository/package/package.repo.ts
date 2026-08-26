@@ -1,8 +1,11 @@
 import { Brackets, DataSource, Repository } from 'typeorm';
-import { FetchPackagesQueryPayload } from '../../../../../validations';
+import {
+    FetchPackagePurchasesQueryPayload,
+    FetchPackagesQueryPayload,
+} from '../../../../../validations';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
-import { PackageEntity } from '../../entity';
+import { PackageEntity, UserPackageEntity } from '../../entity';
 
 export class PackageRepository extends Repository<PackageEntity> {
     constructor(dataSource: DataSource) {
@@ -78,6 +81,89 @@ export class PackageRepository extends Repository<PackageEntity> {
             },
             {
                 packages: [],
+                total: 0,
+                page: Number(query.page) || 1,
+                pageSize: Number(query.pageSize) || 10,
+                offset: 0,
+            },
+        );
+    }
+
+    async createUserPackagePurchase(
+        userPackage: Partial<UserPackageEntity>,
+    ): Promise<UserPackageEntity> {
+        return handleError(async () => {
+            const savedPurchase = await this.manager.save(UserPackageEntity, userPackage);
+            return (await this.findUserPackagePurchaseById(savedPurchase.id)) || savedPurchase;
+        });
+    }
+
+    async findUserPackagePurchaseById(id?: string): Promise<UserPackageEntity | null> {
+        return handleError(() =>
+            this.manager.findOne(UserPackageEntity, {
+                where: { id },
+                relations: { user: true, package: true },
+            }),
+        );
+    }
+
+    async listUserPackagePurchases(query: FetchPackagePurchasesQueryPayload): Promise<{
+        purchases: UserPackageEntity[];
+        total: number;
+        page: number;
+        pageSize: number;
+        offset: number;
+    }> {
+        return handleError(
+            async () => {
+                const { page, pageSize, offset, limit } = getOffset(query);
+                const queryBuilder = this.manager
+                    .getRepository(UserPackageEntity)
+                    .createQueryBuilder('purchase')
+                    .leftJoinAndSelect('purchase.user', 'user')
+                    .leftJoinAndSelect('purchase.package', 'package');
+
+                if (query.search) {
+                    queryBuilder.andWhere(
+                        new Brackets((qb) => {
+                            qb.where('user.full_name ILIKE :search', {
+                                search: `%${query.search}%`,
+                            })
+                                .orWhere('user.email ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('user.phone_no ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                })
+                                .orWhere('purchase.package_type ILIKE :search', {
+                                    search: `%${query.search}%`,
+                                });
+                        }),
+                    );
+                }
+
+                if (query.userId) {
+                    queryBuilder.andWhere('user.id = :userId', { userId: query.userId });
+                }
+
+                if (query.packageId) {
+                    queryBuilder.andWhere('package.id = :packageId', {
+                        packageId: query.packageId,
+                    });
+                }
+
+                queryBuilder
+                    .orderBy(`purchase.${query.orderBy || 'purchased_at'}`, query.order || 'DESC')
+                    .addOrderBy('purchase.id', 'DESC')
+                    .skip(offset)
+                    .take(limit);
+
+                const [purchases, total] = await queryBuilder.getManyAndCount();
+
+                return { purchases, total, page, pageSize, offset };
+            },
+            {
+                purchases: [],
                 total: 0,
                 page: Number(query.page) || 1,
                 pageSize: Number(query.pageSize) || 10,
