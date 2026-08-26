@@ -6,9 +6,11 @@ import {
     Index,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { BookingEntity } from './booking.entity';
 import { PackageEntity } from './package.entity';
 import { UserEntity } from './users.entity';
 
@@ -43,6 +45,9 @@ export class UserPackageEntity {
     number_of_sessions!: number;
 
     @Column({ type: 'int' })
+    remaining_sessions!: number;
+
+    @Column({ type: 'int' })
     valid_days!: number;
 
     @Column({ type: 'timestamp' })
@@ -59,4 +64,7 @@ export class UserPackageEntity {
 
     @DeleteDateColumn({ type: 'timestamp', nullable: true })
     deleted_at!: Date | null;
+
+    @OneToMany(() => BookingEntity, (booking) => booking.userPackage)
+    bookings!: BookingEntity[];
 }

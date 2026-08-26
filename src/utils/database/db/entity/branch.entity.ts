@@ -9,6 +9,7 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { BranchStatus } from '../../../../config/enum';
+import { BookingEntity } from './booking.entity';
 import { BranchAvailabilitySettingEntity } from './branch-availability-setting.entity';
 import { BranchMaintenanceEntity } from './branch-maintenance.entity';
 import { EnquiryEntity } from './enquiry.entity';
@@ -74,4 +75,7 @@ export class BranchEntity {
 
     @OneToMany(() => EnquiryEntity, (enquiry) => enquiry.branch)
     enquiries!: EnquiryEntity[];
+
+    @OneToMany(() => BookingEntity, (booking) => booking.branch)
+    bookings!: BookingEntity[];
 }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import authRoutes from './auth.routes';
 import branchRoutes from './branch.routes';
+import bookingRoutes from './booking.routes';
 import commonRoutes from './common.routes';
 import sessionRoutes from './session.routes';
 import packageRoutes from './package.routes';
@@ -17,6 +18,7 @@ const router = Router();
 const defaultRoutes: { path: string; route: Router }[] = [
     { path: '/auth', route: authRoutes },
     { path: '/branch', route: branchRoutes },
+    { path: '/booking', route: bookingRoutes },
     { path: '/common', route: commonRoutes },
     { path: '/session', route: sessionRoutes },
     { path: '/package', route: packageRoutes },

@@ -6,6 +6,7 @@ export class PackageResponseDto {
     packageType!: string;
     price!: number;
     numberOfSessions!: number;
+    remainingSessions!: number;
     validDays!: number;
     status!: boolean;
     createdAt!: Date;
@@ -51,6 +52,7 @@ export class PackagePurchaseResponseDto {
     packageType!: string;
     price!: number;
     numberOfSessions!: number;
+    remainingSessions!: number;
     validDays!: number;
     purchasedAt!: Date;
     expiredAt!: Date;
@@ -79,6 +81,7 @@ export class PackagePurchaseResponseDto {
         this.packageType = purchase?.package_type || '';
         this.price = Number(purchase?.price || 0);
         this.numberOfSessions = purchase?.number_of_sessions || 0;
+        this.remainingSessions = purchase?.remaining_sessions || 0;
         this.validDays = purchase?.valid_days || 0;
         this.purchasedAt = purchase?.purchased_at!;
         this.expiredAt = purchase?.expired_at!;

@@ -13,6 +13,7 @@ import {
 import { Gender, UserStatus, UserType } from '../../../../config/enum';
 import { RoleEntity } from './roles.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
+import { BookingEntity } from './booking.entity';
 import { UserBranchEntity } from './user-branch.entity';
 import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
 import { UserPackageEntity } from './user-package.entity';
@@ -139,4 +140,10 @@ export class UserEntity {
 
     @OneToMany(() => UserPackageEntity, (userPackage) => userPackage.user)
     userPackages!: UserPackageEntity[];
+
+    @OneToMany(() => BookingEntity, (booking) => booking.user)
+    bookings!: BookingEntity[];
+
+    @OneToMany(() => BookingEntity, (booking) => booking.trainer)
+    trainerBookings!: BookingEntity[];
 }

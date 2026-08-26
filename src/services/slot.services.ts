@@ -106,7 +106,9 @@ export class SlotService {
                     bookingMap,
                 ),
             }))
-            .filter((slot) => slot.availableTrainerIds.length > 0);
+            .filter(
+                (slot) => slot.availableTrainerIds.length > 0 || slot.reservedTrainerIds.length > 0,
+            );
 
         return new AvailableSlotListResponseDto({
             branchId: branch.id,

@@ -1,6 +1,7 @@
 export * from './role';
 export * from './user';
 export * from './black-list-token';
+export * from './booking';
 export * from './branch';
 export * from './session';
 export * from './package';

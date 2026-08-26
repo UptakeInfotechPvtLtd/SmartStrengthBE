@@ -242,3 +242,15 @@ export enum SachinSessionSessionsPerWeek {
     ThreeSessions = '3 sessions',
     Flexible = 'Flexible',
 }
+
+export enum BookingStatus {
+    Confirmed = 'confirmed',
+    Cancelled = 'cancelled',
+}
+
+export enum BookingListFilter {
+    All = 'all',
+    Upcoming = 'upcomming',
+    Cancel = 'cancel',
+    Reschedule = 'rechedule',
+}

@@ -8,6 +8,7 @@ import {
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { BookingEntity } from './booking.entity';
 import { SessionBranchEntity } from './session-branch.entity';
 
 @Entity('Sessions')
@@ -48,4 +49,7 @@ export class SessionEntity {
         cascade: true,
     })
     sessionBranches!: SessionBranchEntity[];
+
+    @OneToMany(() => BookingEntity, (booking) => booking.session)
+    bookings!: BookingEntity[];
 }

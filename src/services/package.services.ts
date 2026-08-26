@@ -117,6 +117,7 @@ export class PackageService {
             package_type: packageData.package_type,
             price: packageData.price,
             number_of_sessions: packageData.number_of_sessions,
+            remaining_sessions: packageData.number_of_sessions,
             valid_days: packageData.valid_days,
             purchased_at: purchasedAt,
             expired_at: expiredAt,

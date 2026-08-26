@@ -1,5 +1,6 @@
 import {
     AuthService,
+    BookingService,
     BranchService,
     CommonService,
     CmsService,
@@ -15,6 +16,7 @@ import {
 
 import {
     BranchRepository,
+    BookingRepository,
     DbDataSource,
     UserRepository,
     BlackListTokenRepository,
@@ -33,6 +35,7 @@ export const userRepo = new UserRepository(DbDataSource);
 export const roleRepo = new RoleRepository(DbDataSource);
 export const blackListTokenRepo = new BlackListTokenRepository(DbDataSource);
 export const branchRepo = new BranchRepository(DbDataSource);
+export const bookingRepo = new BookingRepository(DbDataSource);
 export const sessionRepo = new SessionRepository(DbDataSource);
 export const packageRepo = new PackageRepository(DbDataSource);
 export const cmsRepo = new CmsRepository(DbDataSource);
@@ -56,5 +59,6 @@ export const availabilityManagementService = new AvailabilityManagementService(
     userRepo,
 );
 export const slotService = new SlotService(slotRepo);
+export const bookingService = new BookingService(bookingRepo, sessionRepo, userRepo, slotService);
 export const rosterService = new RosterService(rosterRepo, userRepo);
 export const enquiryService = new EnquiryService(enquiryRepo, branchRepo);

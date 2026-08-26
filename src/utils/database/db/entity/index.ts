@@ -1,6 +1,7 @@
 import { RoleEntity } from './roles.entity';
 import { UserEntity } from './users.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
+import { BookingEntity } from './booking.entity';
 import { BranchEntity } from './branch.entity';
 import { UserBranchEntity } from './user-branch.entity';
 import { SessionEntity } from './session.entity';
@@ -29,6 +30,7 @@ export const entities = [
     UserPerformanceMetricEntity,
     VideoLibraryEntity,
     BackListTokenEntity,
+    BookingEntity,
     UserEntity,
     AccessModuleEntity,
     AccessControlEntity,
@@ -43,6 +45,7 @@ export const entities = [
 export * from './users.entity';
 export * from './roles.entity';
 export * from './back.list.token.entity';
+export * from './booking.entity';
 export * from './branch.entity';
 export * from './user-branch.entity';
 export * from './session.entity';
