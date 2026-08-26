@@ -7,7 +7,6 @@ import {
     createRosterSchema,
     listRostersSchema,
     rosterIdSchema,
-    updateRosterSchema,
     updateRosterStatusSchema,
 } from '../validations/roster.validations';
 
@@ -36,13 +35,6 @@ router.get(
     requireAccessPermission(AccessModule.RosterManagement, AccessPermission.Read),
     validate(rosterIdSchema),
     routeHandler(rosterController.getRosterById),
-);
-router.put(
-    '/:id',
-    verifyToken(authRoles),
-    requireAccessPermission(AccessModule.RosterManagement, AccessPermission.Update),
-    validate(updateRosterSchema),
-    routeHandler(rosterController.updateRoster),
 );
 router.patch(
     '/:id/status',

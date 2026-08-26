@@ -153,6 +153,7 @@ export const messages = {
     trainerNotFound: 'Selected trainer is not available.',
     branchNotAvailableForSelectedDate: 'Branch is not available for selected date.',
     rosterCreatedSuccessfully: 'Roster created successfully.',
+    rosterSavedSuccessfully: 'Roster saved successfully.',
     rosterUpdatedSuccessfully: 'Roster updated successfully.',
     rosterStatusUpdatedSuccessfully: 'Roster status updated successfully.',
     rosterDeletedSuccessfully: 'Roster deleted successfully.',

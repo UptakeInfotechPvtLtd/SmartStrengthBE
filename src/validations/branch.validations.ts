@@ -130,6 +130,12 @@ export const listBranchesSchema = {
                     .optional(),
             ),
             status: statusFilterSchema,
+            userId: z
+                .string()
+                .refine((value) => uuidRegex.test(value), {
+                    error: validationMessages.user.userIdInvalid,
+                })
+                .optional(),
             orderBy: branchOrderBySchema,
             order: orderSchema.transform((value) => value.toUpperCase() as 'ASC' | 'DESC'),
         })

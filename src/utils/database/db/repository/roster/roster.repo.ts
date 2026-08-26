@@ -21,6 +21,25 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
         );
     }
 
+    async saveRostersByCombination(
+        rosters: Partial<TrainerRosterEntity>[],
+    ): Promise<TrainerRosterEntity[]> {
+        if (!rosters.length) {
+            return [];
+        }
+
+        return handleError(() =>
+            this.dataSource.transaction(async (manager) => {
+                const saved = await manager.save(TrainerRosterEntity, rosters);
+                return manager.find(TrainerRosterEntity, {
+                    where: { id: In(saved.map((roster) => roster.id)) },
+                    relations: { branch: true, trainer: true },
+                    order: { day_of_week: 'ASC', start_time: 'ASC' },
+                });
+            }),
+        );
+    }
+
     async updateRoster(roster: TrainerRosterEntity): Promise<TrainerRosterEntity> {
         return handleError(async () => {
             const saved = await this.save(roster);
@@ -116,6 +135,46 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
         );
     }
 
+    async findRostersByEntries(entries: RosterEntryLookup[]): Promise<TrainerRosterEntity[]> {
+        if (!entries.length) {
+            return [];
+        }
+
+        return handleError(() => {
+            const queryBuilder = this.createQueryBuilder('roster')
+                .leftJoinAndSelect('roster.branch', 'branch')
+                .leftJoinAndSelect('roster.trainer', 'trainer')
+                .where(
+                    new Brackets((outerQb) => {
+                        entries.forEach((entry, index) => {
+                            const condition =
+                                `branch.id = :branchId${index} ` +
+                                `AND trainer.id = :trainerId${index} ` +
+                                `AND roster.day_of_week = :dayOfWeek${index} ` +
+                                `AND roster.start_time = :startTime${index} ` +
+                                `AND roster.end_time = :endTime${index}`;
+                            const params = {
+                                [`branchId${index}`]: entry.branchId,
+                                [`trainerId${index}`]: entry.trainerId,
+                                [`dayOfWeek${index}`]: entry.dayOfWeek,
+                                [`startTime${index}`]: entry.startTime,
+                                [`endTime${index}`]: entry.endTime,
+                            };
+
+                            if (index === 0) {
+                                outerQb.where(condition, params);
+                            } else {
+                                outerQb.orWhere(condition, params);
+                            }
+                        });
+                    }),
+                )
+                .orderBy('roster.updated_at', 'DESC');
+
+            return queryBuilder.getMany();
+        }, []);
+    }
+
     async findOverlappingRosters(entries: RosterOverlapLookup[]): Promise<TrainerRosterEntity[]> {
         if (!entries.length) {
             return [];
@@ -159,6 +218,14 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
             return queryBuilder.getMany();
         }, []);
     }
+}
+
+export interface RosterEntryLookup {
+    branchId: string;
+    trainerId: string;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
 }
 
 export interface RosterOverlapLookup {

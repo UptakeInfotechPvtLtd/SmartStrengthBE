@@ -48,22 +48,14 @@ export const createRosterSchema = {
         .strict(),
 };
 
-export const updateRosterSchema = {
-    params: z
-        .object({
-            id: uuidSchema(validationMessages.roster.rosterIdInvalid),
-        })
-        .strict(),
-    body: rosterEntryObjectSchema
-        .partial()
-        .refine((body) => !body.startTime || !body.endTime || body.startTime < body.endTime, {
-            error: validationMessages.roster.startTimeBeforeEndTime,
-            path: ['endTime'],
-        }),
-};
+const rosterParamsSchema = z
+    .object({
+        id: uuidSchema(validationMessages.roster.rosterIdInvalid),
+    })
+    .strict();
 
 export const updateRosterStatusSchema = {
-    params: updateRosterSchema.params,
+    params: rosterParamsSchema,
     body: z
         .object({
             status: z.enum(RosterStatus, { error: validationMessages.roster.statusInvalid }),
@@ -72,7 +64,7 @@ export const updateRosterStatusSchema = {
 };
 
 export const rosterIdSchema = {
-    params: updateRosterSchema.params,
+    params: rosterParamsSchema,
 };
 
 export const listRostersSchema = {
@@ -80,6 +72,5 @@ export const listRostersSchema = {
 };
 
 export type CreateRosterBodyPayload = z.infer<typeof createRosterSchema.body>;
-export type UpdateRosterBodyPayload = z.infer<typeof updateRosterSchema.body>;
 export type RosterIdParamsPayload = z.infer<typeof rosterIdSchema.params>;
 export type UpdateRosterStatusBodyPayload = z.infer<typeof updateRosterStatusSchema.body>;

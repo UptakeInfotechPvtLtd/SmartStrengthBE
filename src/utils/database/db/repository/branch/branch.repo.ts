@@ -1,5 +1,5 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
-import { BranchEntity, BranchMaintenanceEntity } from '../../entity';
+import { BranchEntity, BranchMaintenanceEntity, UserEntity } from '../../entity';
 import { FetchBranchesQueryPayload } from '../../../../../validations';
 import { BranchOrderBy, BranchStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
@@ -50,7 +50,7 @@ export class BranchRepository extends Repository<BranchEntity> {
 
     async listBranches(
         query: FetchBranchesQueryPayload,
-        assignedUserId?: string,
+        assignedBranchIds?: string[],
     ): Promise<{
         branches: BranchEntity[];
         total: number;
@@ -66,10 +66,10 @@ export class BranchRepository extends Repository<BranchEntity> {
                     'availabilitySettings',
                 );
 
-                if (assignedUserId) {
-                    queryBuilder
-                        .innerJoin('branch.userBranches', 'userBranch')
-                        .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
+                if (assignedBranchIds) {
+                    queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                        assignedBranchIds: assignedBranchIds.length ? assignedBranchIds : [''],
+                    });
                 }
 
                 if (query.search) {
@@ -133,6 +133,15 @@ export class BranchRepository extends Repository<BranchEntity> {
         };
 
         return orderByMap[orderBy || ''] || 'created_at';
+    }
+
+    async findUserByIdWithRoleAndBranches(userId: string): Promise<UserEntity | null> {
+        return handleError(() =>
+            this.manager.findOne(UserEntity, {
+                where: { id: userId },
+                relations: { role: true, userBranches: { branch: true } },
+            }),
+        );
     }
 
     private async attachFutureMaintenances(branches: BranchEntity[]): Promise<void> {

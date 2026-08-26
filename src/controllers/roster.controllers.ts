@@ -5,14 +5,12 @@ import { RosterService } from '../services';
 import {
     CreateRosterBodyPayload,
     RosterIdParamsPayload,
-    UpdateRosterBodyPayload,
     UpdateRosterStatusBodyPayload,
 } from '../validations/roster.validations';
 
 export class RosterController {
     constructor(private readonly rosterService: RosterService) {
         this.createRosters = this.createRosters.bind(this);
-        this.updateRoster = this.updateRoster.bind(this);
         this.updateRosterStatus = this.updateRosterStatus.bind(this);
         this.deleteRoster = this.deleteRoster.bind(this);
         this.getRosterById = this.getRosterById.bind(this);
@@ -21,12 +19,7 @@ export class RosterController {
 
     async createRosters(req: IAuthenticatedRequest<any, CreateRosterBodyPayload>) {
         const result = await this.rosterService.createRosters(req.body, req.user);
-        return new BaseResponseDto(messages.rosterCreatedSuccessfully, result);
-    }
-
-    async updateRoster(req: IAuthenticatedRequest<RosterIdParamsPayload, UpdateRosterBodyPayload>) {
-        const result = await this.rosterService.updateRoster(req.params, req.body, req.user);
-        return new BaseResponseDto(messages.rosterUpdatedSuccessfully, result);
+        return new BaseResponseDto(messages.rosterSavedSuccessfully, result);
     }
 
     async updateRosterStatus(

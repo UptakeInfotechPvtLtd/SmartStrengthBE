@@ -1,7 +1,13 @@
 import { BranchStatus, IJwtPayload, Roles } from '../config';
 import { BranchListResponseDto, BranchResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import { BranchRepository, NotFoundException, UserBranchEntity, buildPagination } from '../utils';
+import {
+    BadRequestException,
+    BranchRepository,
+    NotFoundException,
+    UserBranchEntity,
+    buildPagination,
+} from '../utils';
 import {
     BranchIdParamsPayload,
     CreateBranchBodyPayload,
@@ -73,10 +79,10 @@ export class BranchService {
         query: FetchBranchesQueryPayload,
         authUser: IJwtPayload,
     ): Promise<BranchListResponseDto> {
-        const assignedUserId = this.getAssignedUserId(authUser);
+        const assignedBranchIds = await this.getListAssignedBranchIds(query.userId, authUser);
         const { branches, total, page, pageSize, offset } = await this.branchRepo.listBranches(
             query,
-            assignedUserId,
+            assignedBranchIds,
         );
 
         return new BranchListResponseDto(
@@ -102,6 +108,70 @@ export class BranchService {
         return [Roles.SubAdmin, Roles.Trainer, Roles.User].includes(authUser?.roleName as Roles)
             ? authUser?.userId
             : undefined;
+    }
+
+    private async getListAssignedBranchIds(
+        userId: string | undefined,
+        authUser: IJwtPayload,
+    ): Promise<string[] | undefined> {
+        const authAssignedBranchIds = await this.getUserAssignedBranchIds(
+            this.getAssignedUserId(authUser),
+        );
+        const filterAssignedBranchIds = await this.getFilterUserAssignedBranchIds(userId);
+
+        if (!authAssignedBranchIds) {
+            return filterAssignedBranchIds;
+        }
+
+        if (!filterAssignedBranchIds) {
+            return authAssignedBranchIds;
+        }
+
+        return authAssignedBranchIds.filter((branchId) =>
+            filterAssignedBranchIds.includes(branchId),
+        );
+    }
+
+    private async getFilterUserAssignedBranchIds(userId?: string): Promise<string[] | undefined> {
+        if (!userId) {
+            return undefined;
+        }
+
+        const user = await this.branchRepo.findUserByIdWithRoleAndBranches(userId);
+        if (!user) {
+            throw new BadRequestException(messages.userNotFound);
+        }
+
+        if (user.role?.name === Roles.Admin) {
+            return undefined;
+        }
+
+        if (user.role?.name === Roles.SubAdmin || user.role?.name === Roles.Trainer) {
+            return this.extractAssignedBranchIds(user);
+        }
+
+        return [];
+    }
+
+    private async getUserAssignedBranchIds(userId?: string): Promise<string[] | undefined> {
+        if (!userId) {
+            return undefined;
+        }
+
+        const user = await this.branchRepo.findUserByIdWithRoleAndBranches(userId);
+        if (!user) {
+            return [];
+        }
+
+        return this.extractAssignedBranchIds(user);
+    }
+
+    private extractAssignedBranchIds(user: { userBranches?: UserBranchEntity[] }): string[] {
+        return (
+            user.userBranches
+                ?.map((userBranch) => userBranch.branch?.id)
+                .filter((branchId): branchId is string => Boolean(branchId)) || []
+        );
     }
 
     private createAssignedUserBranches(authUser: IJwtPayload): UserBranchEntity[] {
