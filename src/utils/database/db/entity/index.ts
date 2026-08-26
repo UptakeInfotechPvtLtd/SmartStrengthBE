@@ -10,6 +10,11 @@ import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
 import { VideoLibraryEntity } from './video-library.entity';
 import { AccessModuleEntity } from './access-module.entity';
 import { AccessControlEntity } from './access-control.entity';
+import { BranchAvailabilitySettingEntity } from './branch-availability-setting.entity';
+import { BranchMaintenanceEntity } from './branch-maintenance.entity';
+import { TrainerAvailabilityEntity } from './trainer-availability.entity';
+import { TrainerMaintenanceEntity } from './trainer-maintenance.entity';
+import { TrainerRosterEntity } from './trainer-roster.entity';
 
 export const entities = [
     RoleEntity,
@@ -24,6 +29,11 @@ export const entities = [
     UserEntity,
     AccessModuleEntity,
     AccessControlEntity,
+    BranchAvailabilitySettingEntity,
+    BranchMaintenanceEntity,
+    TrainerAvailabilityEntity,
+    TrainerMaintenanceEntity,
+    TrainerRosterEntity,
 ];
 
 export * from './users.entity';
@@ -38,3 +48,8 @@ export * from './user-performance-metric.entity';
 export * from './video-library.entity';
 export * from './access-module.entity';
 export * from './access-control.entity';
+export * from './branch-availability-setting.entity';
+export * from './branch-maintenance.entity';
+export * from './trainer-availability.entity';
+export * from './trainer-maintenance.entity';
+export * from './trainer-roster.entity';

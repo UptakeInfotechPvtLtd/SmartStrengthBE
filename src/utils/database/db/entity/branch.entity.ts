@@ -9,7 +9,10 @@ import {
     UpdateDateColumn,
 } from 'typeorm';
 import { BranchStatus } from '../../../../config/enum';
+import { BranchAvailabilitySettingEntity } from './branch-availability-setting.entity';
+import { BranchMaintenanceEntity } from './branch-maintenance.entity';
 import { SessionBranchEntity } from './session-branch.entity';
+import { TrainerRosterEntity } from './trainer-roster.entity';
 import { UserBranchEntity } from './user-branch.entity';
 
 @Entity('Branches')
@@ -55,4 +58,16 @@ export class BranchEntity {
         cascade: true,
     })
     sessionBranches!: SessionBranchEntity[];
+
+    @OneToMany(
+        () => BranchAvailabilitySettingEntity,
+        (availabilitySetting) => availabilitySetting.branch,
+    )
+    availabilitySettings!: BranchAvailabilitySettingEntity[];
+
+    @OneToMany(() => BranchMaintenanceEntity, (maintenance) => maintenance.branch)
+    maintenances!: BranchMaintenanceEntity[];
+
+    @OneToMany(() => TrainerRosterEntity, (trainerRoster) => trainerRoster.branch)
+    trainerRosters!: TrainerRosterEntity[];
 }

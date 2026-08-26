@@ -280,7 +280,7 @@ export const listManagedUsersSchema = {
                     error: validationMessages.user.roleIdInvalid,
                 })
                 .optional(),
-            status: statusSchema,
+            status: statusSchema.optional(),
             branchIds: branchIdsQuerySchema,
             orderBy: z
                 .enum(['full_name', 'email', 'phone_no', 'created_at', 'updated_at'])

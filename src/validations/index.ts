@@ -5,3 +5,6 @@ export * from './session.validations';
 export * from './user.validations';
 export * from './cms.validations';
 export * from './access-control.validations';
+export * from './availability-management.validations';
+export * from './slot.validations';
+export * from './roster.validations';

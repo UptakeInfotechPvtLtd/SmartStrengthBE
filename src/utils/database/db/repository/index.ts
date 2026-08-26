@@ -6,3 +6,6 @@ export * from './session';
 export * from './package';
 export * from './cms';
 export * from './access-control';
+export * from './availability-management';
+export * from './slot';
+export * from './roster';

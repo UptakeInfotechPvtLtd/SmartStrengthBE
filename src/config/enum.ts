@@ -33,12 +33,37 @@ export enum AccessModule {
     BranchManagement = 'branch_management',
     BookingManagement = 'booking_management',
     SlotMaintenance = 'slot_maintenance',
+    RosterManagement = 'roster_management',
     TestimonialManagement = 'testimonial_management',
     SingleSessionManagement = 'single_session_management',
     PackageManagement = 'package_management',
     TrainWithSachinManagement = 'train_with_sachin_management',
     VideoManagement = 'video_management',
     Reports = 'reports',
+}
+
+export enum BranchAvailabilityStatus {
+    Open = 'open',
+    FullyOff = 'fully off',
+}
+
+export enum TrainerAvailabilityStatus {
+    Available = 'available',
+    Unavailable = 'unavailable',
+}
+
+export enum RosterStatus {
+    Working = 'working',
+    DayOff = 'dayoff',
+}
+
+export enum RosterDay {
+    Monday = 'monday',
+    Tuesday = 'tuesday',
+    Wednesday = 'wednesday',
+    Thursday = 'thursday',
+    Friday = 'friday',
+    Saturday = 'saturday',
 }
 
 export enum AccessPermission {

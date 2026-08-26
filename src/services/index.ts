@@ -6,3 +6,6 @@ export * from './package.services';
 export * from './user.services';
 export * from './cms.services';
 export * from './access-control.services';
+export * from './availability-management.services';
+export * from './slot.services';
+export * from './roster.services';

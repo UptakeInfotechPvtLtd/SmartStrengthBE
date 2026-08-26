@@ -15,6 +15,7 @@ import { RoleEntity } from './roles.entity';
 import { BackListTokenEntity } from './back.list.token.entity';
 import { UserBranchEntity } from './user-branch.entity';
 import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
+import { TrainerRosterEntity } from './trainer-roster.entity';
 
 export interface PerformanceMetricValues {
     [label: string]: string | number | boolean | null;
@@ -131,4 +132,7 @@ export class UserEntity {
         cascade: true,
     })
     performanceMetrics!: UserPerformanceMetricEntity[];
+
+    @OneToMany(() => TrainerRosterEntity, (trainerRoster) => trainerRoster.trainer)
+    trainerRosters!: TrainerRosterEntity[];
 }

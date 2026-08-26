@@ -1,5 +1,5 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
-import { BranchEntity } from '../../entity';
+import { BranchEntity, BranchMaintenanceEntity } from '../../entity';
 import { FetchBranchesQueryPayload } from '../../../../../validations';
 import { BranchOrderBy, BranchStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
@@ -11,8 +11,10 @@ export class BranchRepository extends Repository<BranchEntity> {
     }
 
     async findBranchById(id?: string, assignedUserId?: string): Promise<BranchEntity | null> {
-        return handleError(() => {
-            const queryBuilder = this.createQueryBuilder('branch').where('branch.id = :id', { id });
+        return handleError(async () => {
+            const queryBuilder = this.createQueryBuilder('branch')
+                .leftJoinAndSelect('branch.availabilitySettings', 'availabilitySettings')
+                .where('branch.id = :id', { id });
 
             if (assignedUserId) {
                 queryBuilder
@@ -20,7 +22,10 @@ export class BranchRepository extends Repository<BranchEntity> {
                     .andWhere('userBranch.user_id = :assignedUserId', { assignedUserId });
             }
 
-            return queryBuilder.getOne();
+            const branch = await queryBuilder.getOne();
+            await this.attachFutureMaintenances(branch ? [branch] : []);
+
+            return branch;
         });
     }
 
@@ -56,7 +61,10 @@ export class BranchRepository extends Repository<BranchEntity> {
         return handleError(
             async () => {
                 const { page, pageSize, offset, limit } = getOffset(query);
-                const queryBuilder = this.createQueryBuilder('branch');
+                const queryBuilder = this.createQueryBuilder('branch').leftJoinAndSelect(
+                    'branch.availabilitySettings',
+                    'availabilitySettings',
+                );
 
                 if (assignedUserId) {
                     queryBuilder
@@ -96,6 +104,7 @@ export class BranchRepository extends Repository<BranchEntity> {
                     .take(limit);
 
                 const [branches, total] = await queryBuilder.getManyAndCount();
+                await this.attachFutureMaintenances(branches);
 
                 return { branches, total, page, pageSize, offset };
             },
@@ -124,5 +133,46 @@ export class BranchRepository extends Repository<BranchEntity> {
         };
 
         return orderByMap[orderBy || ''] || 'created_at';
+    }
+
+    private async attachFutureMaintenances(branches: BranchEntity[]): Promise<void> {
+        if (!branches.length) {
+            return;
+        }
+
+        const branchIds = branches.map((branch) => branch.id);
+        const maintenances = await this.manager
+            .getRepository(BranchMaintenanceEntity)
+            .createQueryBuilder('maintenance')
+            .leftJoinAndSelect('maintenance.branch', 'branch')
+            .where('branch.id IN (:...branchIds)', { branchIds })
+            .andWhere('maintenance.maintenance_date >= :today', { today: this.getTodayDate() })
+            .orderBy('maintenance.maintenance_date', 'ASC')
+            .addOrderBy('maintenance.time_from', 'ASC')
+            .getMany();
+
+        const maintenanceMap = new Map<string, BranchMaintenanceEntity[]>();
+        maintenances.forEach((maintenance) => {
+            const branchId = maintenance.branch.id;
+            const branchMaintenances = maintenanceMap.get(branchId) || [];
+            branchMaintenances.push(maintenance);
+            maintenanceMap.set(branchId, branchMaintenances);
+        });
+
+        branches.forEach((branch) => {
+            branch.maintenances = maintenanceMap.get(branch.id) || [];
+        });
+    }
+
+    private getTodayDate(): string {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).formatToParts(new Date());
+        const dateParts = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+        return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
     }
 }

@@ -8,6 +8,9 @@ import packageRoutes from './package.routes';
 import userRoutes from './user.routes';
 import cmsRoutes from './cms.routes';
 import accessControlRoutes from './access-control.routes';
+import availabilityManagementRoutes from './availability-management.routes';
+import slotRoutes from './slot.routes';
+import rosterRoutes from './roster.routes';
 
 const router = Router();
 const defaultRoutes: { path: string; route: Router }[] = [
@@ -19,6 +22,9 @@ const defaultRoutes: { path: string; route: Router }[] = [
     { path: '/user', route: userRoutes },
     { path: '/cms', route: cmsRoutes },
     { path: '/access-control', route: accessControlRoutes },
+    { path: '/availability-management', route: availabilityManagementRoutes },
+    { path: '/slot', route: slotRoutes },
+    { path: '/roster', route: rosterRoutes },
 ];
 
 defaultRoutes.forEach((route) => {

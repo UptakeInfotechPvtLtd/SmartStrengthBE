@@ -6,6 +6,9 @@ import {
     AccessControlService,
     PackageService,
     SessionService,
+    AvailabilityManagementService,
+    SlotService,
+    RosterService,
     UserService,
 } from '../services';
 
@@ -19,6 +22,9 @@ import {
     CmsRepository,
     PackageRepository,
     AccessControlRepository,
+    AvailabilityManagementRepository,
+    SlotRepository,
+    RosterRepository,
 } from './database'; // your file path
 
 export const userRepo = new UserRepository(DbDataSource);
@@ -29,6 +35,9 @@ export const sessionRepo = new SessionRepository(DbDataSource);
 export const packageRepo = new PackageRepository(DbDataSource);
 export const cmsRepo = new CmsRepository(DbDataSource);
 export const accessControlRepo = new AccessControlRepository(DbDataSource);
+export const availabilityManagementRepo = new AvailabilityManagementRepository(DbDataSource);
+export const slotRepo = new SlotRepository(DbDataSource);
+export const rosterRepo = new RosterRepository(DbDataSource);
 
 export const authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
@@ -38,3 +47,10 @@ export const packageService = new PackageService(packageRepo);
 export const userService = new UserService(userRepo, roleRepo, branchRepo);
 export const cmsService = new CmsService(cmsRepo);
 export const accessControlService = new AccessControlService(accessControlRepo, roleRepo, userRepo);
+export const availabilityManagementService = new AvailabilityManagementService(
+    availabilityManagementRepo,
+    branchRepo,
+    userRepo,
+);
+export const slotService = new SlotService(slotRepo);
+export const rosterService = new RosterService(rosterRepo, userRepo);
