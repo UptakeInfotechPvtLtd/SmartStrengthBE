@@ -9,3 +9,4 @@ export * from './access-control.services';
 export * from './availability-management.services';
 export * from './slot.services';
 export * from './roster.services';
+export * from './enquiry.services';

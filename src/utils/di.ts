@@ -9,6 +9,7 @@ import {
     AvailabilityManagementService,
     SlotService,
     RosterService,
+    EnquiryService,
     UserService,
 } from '../services';
 
@@ -25,6 +26,7 @@ import {
     AvailabilityManagementRepository,
     SlotRepository,
     RosterRepository,
+    EnquiryRepository,
 } from './database'; // your file path
 
 export const userRepo = new UserRepository(DbDataSource);
@@ -38,6 +40,7 @@ export const accessControlRepo = new AccessControlRepository(DbDataSource);
 export const availabilityManagementRepo = new AvailabilityManagementRepository(DbDataSource);
 export const slotRepo = new SlotRepository(DbDataSource);
 export const rosterRepo = new RosterRepository(DbDataSource);
+export const enquiryRepo = new EnquiryRepository(DbDataSource);
 
 export const authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
@@ -54,3 +57,4 @@ export const availabilityManagementService = new AvailabilityManagementService(
 );
 export const slotService = new SlotService(slotRepo);
 export const rosterService = new RosterService(rosterRepo, userRepo);
+export const enquiryService = new EnquiryService(enquiryRepo, branchRepo);

@@ -11,6 +11,7 @@ import {
 import { BranchStatus } from '../../../../config/enum';
 import { BranchAvailabilitySettingEntity } from './branch-availability-setting.entity';
 import { BranchMaintenanceEntity } from './branch-maintenance.entity';
+import { EnquiryEntity } from './enquiry.entity';
 import { SessionBranchEntity } from './session-branch.entity';
 import { TrainerRosterEntity } from './trainer-roster.entity';
 import { UserBranchEntity } from './user-branch.entity';
@@ -70,4 +71,7 @@ export class BranchEntity {
 
     @OneToMany(() => TrainerRosterEntity, (trainerRoster) => trainerRoster.branch)
     trainerRosters!: TrainerRosterEntity[];
+
+    @OneToMany(() => EnquiryEntity, (enquiry) => enquiry.branch)
+    enquiries!: EnquiryEntity[];
 }

@@ -1,13 +1,30 @@
 import {
+    AthletePlayingLevel,
+    AthleteSeasonStatus,
+    AthleteSport,
     BranchStatus,
+    CorporateEmployeesToBeCovered,
+    CorporateEngagementModel,
+    CorporateGymOnSite,
+    CorporateRole,
     Difficulty,
+    EnquiryType,
     Gender,
+    IndividualCoachingPrimaryGoal,
+    IndividualCoachingSessionsPerWeek,
     MuscleGroup,
     OtpPurpose,
+    SachinSessionSessionsPerWeek,
+    SchoolProgrammeOfInterest,
+    SchoolRole,
+    SocietyCommercialPreference,
+    SocietyExistingGym,
+    SocietyRole,
+    TrainingExperience,
     UserType,
     VideoSource,
     VideoStatus,
-} from '../../../config';
+} from '../../../config/enum';
 import { RoleEntity } from '../../../utils';
 
 export class DropdownOptionDto {
@@ -31,6 +48,25 @@ export class CommonDropdownResponseDto {
     difficulties!: DropdownOptionDto[];
     videoSources!: DropdownOptionDto[];
     videoStatuses!: DropdownOptionDto[];
+    enquiry!: {
+        enquiryTypes: DropdownOptionDto[];
+        individualCoachingPrimaryGoals: DropdownOptionDto[];
+        trainingExperiences: DropdownOptionDto[];
+        individualCoachingSessionsPerWeek: DropdownOptionDto[];
+        athleteSports: DropdownOptionDto[];
+        athletePlayingLevels: DropdownOptionDto[];
+        athleteSeasonStatuses: DropdownOptionDto[];
+        schoolRoles: DropdownOptionDto[];
+        schoolProgrammeOfInterests: DropdownOptionDto[];
+        corporateRoles: DropdownOptionDto[];
+        corporateEngagementModels: DropdownOptionDto[];
+        corporateEmployeesToBeCovered: DropdownOptionDto[];
+        corporateGymOnSite: DropdownOptionDto[];
+        societyRoles: DropdownOptionDto[];
+        societyExistingGyms: DropdownOptionDto[];
+        societyCommercialPreferences: DropdownOptionDto[];
+        sachinSessionSessionsPerWeek: DropdownOptionDto[];
+    };
 
     constructor(roles: RoleEntity[]) {
         this.roles = roles
@@ -44,6 +80,27 @@ export class CommonDropdownResponseDto {
         this.difficulties = this.createEnumOptions(Difficulty);
         this.videoSources = this.createEnumOptions(VideoSource);
         this.videoStatuses = this.createEnumOptions(VideoStatus);
+        this.enquiry = {
+            enquiryTypes: this.createEnumOptions(EnquiryType),
+            individualCoachingPrimaryGoals: this.createEnumOptions(IndividualCoachingPrimaryGoal),
+            trainingExperiences: this.createEnumOptions(TrainingExperience),
+            individualCoachingSessionsPerWeek: this.createEnumOptions(
+                IndividualCoachingSessionsPerWeek,
+            ),
+            athleteSports: this.createEnumOptions(AthleteSport),
+            athletePlayingLevels: this.createEnumOptions(AthletePlayingLevel),
+            athleteSeasonStatuses: this.createEnumOptions(AthleteSeasonStatus),
+            schoolRoles: this.createEnumOptions(SchoolRole),
+            schoolProgrammeOfInterests: this.createEnumOptions(SchoolProgrammeOfInterest),
+            corporateRoles: this.createEnumOptions(CorporateRole),
+            corporateEngagementModels: this.createEnumOptions(CorporateEngagementModel),
+            corporateEmployeesToBeCovered: this.createEnumOptions(CorporateEmployeesToBeCovered),
+            corporateGymOnSite: this.createEnumOptions(CorporateGymOnSite),
+            societyRoles: this.createEnumOptions(SocietyRole),
+            societyExistingGyms: this.createEnumOptions(SocietyExistingGym),
+            societyCommercialPreferences: this.createEnumOptions(SocietyCommercialPreference),
+            sachinSessionSessionsPerWeek: this.createEnumOptions(SachinSessionSessionsPerWeek),
+        };
     }
 
     private createEnumOptions(enumObject: Record<string, string>): DropdownOptionDto[] {

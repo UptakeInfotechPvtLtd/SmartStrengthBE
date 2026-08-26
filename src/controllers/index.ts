@@ -9,3 +9,4 @@ export * from './access-control.controllers';
 export * from './availability-management.controllers';
 export * from './slot.controllers';
 export * from './roster.controllers';
+export * from './enquiry.controllers';
