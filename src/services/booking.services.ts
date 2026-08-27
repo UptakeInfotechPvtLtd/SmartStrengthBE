@@ -128,6 +128,21 @@ export class BookingService {
         );
     }
 
+    async listMyBookings(
+        query: FetchBookingsQueryPayload,
+        authUser: IJwtPayload,
+    ): Promise<BookingListResponseDto> {
+        const { bookings, total, page, pageSize, offset } = await this.bookingRepo.listBookings({
+            ...query,
+            userId: authUser.userId,
+        });
+
+        return new BookingListResponseDto(
+            bookings,
+            buildPagination({ totalResults: total, page, pageSize, offset }),
+        );
+    }
+
     async cancelBooking(
         params: BookingIdParamsPayload,
         authUser: IJwtPayload,

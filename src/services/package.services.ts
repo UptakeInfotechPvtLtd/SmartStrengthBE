@@ -8,7 +8,6 @@ import {
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
-    ConflictException,
     NotFoundException,
     PackageRepository,
     UserRepository,
@@ -31,8 +30,6 @@ export class PackageService {
     ) {}
 
     async createPackage(body: CreatePackageBodyPayload): Promise<PackageResponseDto> {
-        await this.ensurePackageNameUnique(body.packageType);
-
         const packageData = await this.packageRepo.createPackage({
             package_type: body.packageType,
             price: body.price.toFixed(2),
@@ -51,7 +48,6 @@ export class PackageService {
         const packageData = await this.getPackage(params?.id);
 
         if (body.packageType !== undefined && body.packageType !== packageData.package_type) {
-            await this.ensurePackageNameUnique(body.packageType);
             packageData.package_type = body.packageType;
         }
         if (body.price !== undefined) packageData.price = body.price.toFixed(2);
@@ -153,10 +149,4 @@ export class PackageService {
         return expiredAt;
     }
 
-    private async ensurePackageNameUnique(packageName: string): Promise<void> {
-        const existingPackage = await this.packageRepo.findPackageByName(packageName);
-        if (existingPackage) {
-            throw new ConflictException(messages.packageAlreadyExists);
-        }
-    }
 }

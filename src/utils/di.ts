@@ -12,6 +12,7 @@ import {
     RosterService,
     EnquiryService,
     UserService,
+    TestimonialService,
 } from '../services';
 
 import {
@@ -29,6 +30,7 @@ import {
     SlotRepository,
     RosterRepository,
     EnquiryRepository,
+    TestimonialRepository,
 } from './database'; // your file path
 
 export const userRepo = new UserRepository(DbDataSource);
@@ -44,6 +46,7 @@ export const availabilityManagementRepo = new AvailabilityManagementRepository(D
 export const slotRepo = new SlotRepository(DbDataSource);
 export const rosterRepo = new RosterRepository(DbDataSource);
 export const enquiryRepo = new EnquiryRepository(DbDataSource);
+export const testimonialRepo = new TestimonialRepository(DbDataSource);
 
 export const authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
 export const branchService = new BranchService(branchRepo);
@@ -62,3 +65,4 @@ export const slotService = new SlotService(slotRepo);
 export const bookingService = new BookingService(bookingRepo, sessionRepo, userRepo, slotService);
 export const rosterService = new RosterService(rosterRepo, userRepo);
 export const enquiryService = new EnquiryService(enquiryRepo, branchRepo);
+export const testimonialService = new TestimonialService(testimonialRepo, userRepo);

@@ -13,6 +13,7 @@ export class BookingController {
     constructor(private readonly bookingService: BookingService) {
         this.createBooking = this.createBooking.bind(this);
         this.listBookings = this.listBookings.bind(this);
+        this.listMyBookings = this.listMyBookings.bind(this);
         this.cancelBooking = this.cancelBooking.bind(this);
         this.rescheduleBooking = this.rescheduleBooking.bind(this);
     }
@@ -24,6 +25,11 @@ export class BookingController {
 
     async listBookings(req: IAuthenticatedRequest<any, any, FetchBookingsQueryPayload>) {
         const result = await this.bookingService.listBookings(req.query);
+        return new BaseResponseDto(messages.bookingsFetchedSuccessfully, result);
+    }
+
+    async listMyBookings(req: IAuthenticatedRequest<any, any, FetchBookingsQueryPayload>) {
+        const result = await this.bookingService.listMyBookings(req.query, req.user);
         return new BaseResponseDto(messages.bookingsFetchedSuccessfully, result);
     }
 

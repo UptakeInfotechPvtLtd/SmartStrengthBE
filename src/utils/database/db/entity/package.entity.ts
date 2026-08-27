@@ -11,10 +11,6 @@ import {
 import { UserPackageEntity } from './user-package.entity';
 
 @Entity('Packages')
-@Index('IDX_packages_type_active_unique', ['package_type'], {
-    unique: true,
-    where: `"deleted_at" IS NULL`,
-})
 @Index('IDX_packages_type', ['package_type'])
 @Index('IDX_packages_status', ['status'])
 @Index('IDX_packages_deleted_at', ['deleted_at'])

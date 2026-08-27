@@ -10,3 +10,4 @@ export * from './availability-management.validations';
 export * from './slot.validations';
 export * from './roster.validations';
 export * from './enquiry.validations';
+export * from './testimonial.validations';

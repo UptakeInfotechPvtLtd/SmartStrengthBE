@@ -21,6 +21,12 @@ router.post(
     validate(createBookingSchema),
     routeHandler(bookingController.createBooking),
 );
+router.get(
+    '/mybooking',
+    verifyToken([Roles.User]),
+    validate(listBookingsSchema),
+    routeHandler(bookingController.listMyBookings),
+);
 router.patch(
     '/:id/cancel',
     verifyToken([Roles.User]),

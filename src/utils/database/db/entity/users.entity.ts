@@ -18,6 +18,7 @@ import { UserBranchEntity } from './user-branch.entity';
 import { UserPerformanceMetricEntity } from './user-performance-metric.entity';
 import { UserPackageEntity } from './user-package.entity';
 import { TrainerRosterEntity } from './trainer-roster.entity';
+import { TestimonialEntity } from './testimonial.entity';
 
 export interface PerformanceMetricValues {
     [label: string]: string | number | boolean | null;
@@ -146,4 +147,7 @@ export class UserEntity {
 
     @OneToMany(() => BookingEntity, (booking) => booking.trainer)
     trainerBookings!: BookingEntity[];
+
+    @OneToMany(() => TestimonialEntity, (testimonial) => testimonial.user)
+    testimonials!: TestimonialEntity[];
 }

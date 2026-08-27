@@ -120,6 +120,12 @@ export enum VideoStatus {
     Inactive = 'inactive',
 }
 
+export enum TestimonialStatus {
+    Pending = 'Pending',
+    Approved = 'Approved',
+    Rejected = 'Rejected',
+}
+
 export enum EnquiryType {
     IndividualCoaching = 'Individual Coaching',
     AthletePerformance = 'Athlete Performance',

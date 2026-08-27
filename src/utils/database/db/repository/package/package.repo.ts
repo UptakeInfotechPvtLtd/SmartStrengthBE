@@ -65,6 +65,12 @@ export class PackageRepository extends Repository<PackageEntity> {
                     );
                 }
 
+                if (query.packageType) {
+                    queryBuilder.andWhere('package.package_type = :packageType', {
+                        packageType: query.packageType,
+                    });
+                }
+
                 const status = this.normalizeStatus(query.status);
                 if (typeof status === 'boolean') {
                     queryBuilder.andWhere('package.status = :status', { status });

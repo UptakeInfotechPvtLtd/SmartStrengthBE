@@ -11,3 +11,4 @@ export * from './availability-management';
 export * from './slot';
 export * from './roster';
 export * from './enquiry';
+export * from './testimonial';

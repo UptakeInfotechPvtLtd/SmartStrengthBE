@@ -71,6 +71,8 @@ export const messages = {
     branchNotFound: 'Selected branch is not available.',
     videoNotFound: 'Selected video is not available.',
     cannotViewInactiveVideo: 'You are not allowed to view inactive video.',
+    testimonialNotFound: 'Selected testimonial is not available.',
+    onlyNormalUserCanSubmitTestimonial: 'Only normal user can submit testimonial.',
 
     // success messages
     // auth
@@ -139,6 +141,10 @@ export const messages = {
     videoDeletedSuccessfully: 'Video deleted successfully.',
     videoFetchedSuccessfully: 'Video fetched successfully.',
     videosFetchedSuccessfully: 'Videos fetched successfully.',
+    testimonialSubmittedSuccessfully: 'Testimonial submitted successfully.',
+    testimonialStatusUpdatedSuccessfully: 'Testimonial status updated successfully.',
+    testimonialDeletedSuccessfully: 'Testimonial deleted successfully.',
+    testimonialsFetchedSuccessfully: 'Testimonials fetched successfully.',
     accessModulesFetchedSuccessfully: 'Access modules fetched successfully.',
     accessConfigFetchedSuccessfully: 'Access configuration fetched successfully.',
     accessConfigSavedSuccessfully: 'Access configuration saved successfully.',
@@ -1029,6 +1035,18 @@ export const validationMessages = {
         videoSourceInvalid: 'Please select a valid video source.',
         videoStatusInvalid: 'Video status must be active or inactive.',
         activeMemberOnlyBoolean: 'Active member only must be a boolean.',
+        searchString: 'Search must be a string.',
+        searchMaxLength: 'Search cannot exceed 255 characters.',
+    },
+    testimonial: {
+        testimonialIdInvalid: 'Please select a valid testimonial.',
+        ratingCountNumber: 'Rating count must be a number.',
+        ratingCountInteger: 'Rating count must be an integer.',
+        ratingCountMin: 'Rating count must be at least 1.',
+        ratingCountMax: 'Rating count cannot exceed 5.',
+        yourExperienceString: 'Your experience must be a string.',
+        yourExperienceMaxLength: 'Your experience cannot exceed 5000 characters.',
+        statusInvalid: 'Status must be Pending, Approved, or Rejected.',
         searchString: 'Search must be a string.',
         searchMaxLength: 'Search cannot exceed 255 characters.',
     },

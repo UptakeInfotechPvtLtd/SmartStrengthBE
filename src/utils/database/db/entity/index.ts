@@ -18,6 +18,7 @@ import { TrainerAvailabilityEntity } from './trainer-availability.entity';
 import { TrainerMaintenanceEntity } from './trainer-maintenance.entity';
 import { TrainerRosterEntity } from './trainer-roster.entity';
 import { EnquiryEntity } from './enquiry.entity';
+import { TestimonialEntity } from './testimonial.entity';
 
 export const entities = [
     RoleEntity,
@@ -40,6 +41,7 @@ export const entities = [
     TrainerMaintenanceEntity,
     TrainerRosterEntity,
     EnquiryEntity,
+    TestimonialEntity,
 ];
 
 export * from './users.entity';
@@ -62,3 +64,4 @@ export * from './trainer-availability.entity';
 export * from './trainer-maintenance.entity';
 export * from './trainer-roster.entity';
 export * from './enquiry.entity';
+export * from './testimonial.entity';

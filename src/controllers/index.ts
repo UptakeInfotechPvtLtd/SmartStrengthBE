@@ -11,3 +11,4 @@ export * from './availability-management.controllers';
 export * from './slot.controllers';
 export * from './roster.controllers';
 export * from './enquiry.controllers';
+export * from './testimonial.controllers';

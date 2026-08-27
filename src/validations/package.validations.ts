@@ -83,6 +83,9 @@ export const listPackagesSchema = {
                     .max(255, { error: validationMessages.package.searchMaxLength })
                     .optional(),
             ),
+            packageType: z
+                .enum(PackageType, { error: validationMessages.package.packageTypeInvalid })
+                .optional(),
             status: statusSchema,
             orderBy: z
                 .enum([
