@@ -190,6 +190,14 @@ export class BookingRepository extends Repository<BookingEntity> {
                         .andWhere('(booking.booking_date + booking.start_time) > NOW()');
                 }
 
+                if (query.status === BookingListFilter.Past) {
+                    queryBuilder
+                        .andWhere('booking.status = :bookingStatus', {
+                            bookingStatus: BookingStatus.Confirmed,
+                        })
+                        .andWhere('(booking.booking_date + booking.end_time) < NOW()');
+                }
+
                 if (query.status === BookingListFilter.Cancel) {
                     queryBuilder.andWhere('booking.status = :bookingStatus', {
                         bookingStatus: BookingStatus.Cancelled,

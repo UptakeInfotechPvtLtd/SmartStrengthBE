@@ -257,6 +257,7 @@ export enum BookingStatus {
 export enum BookingListFilter {
     All = 'all',
     Upcoming = 'upcomming',
+    Past = 'past',
     Cancel = 'cancel',
     Reschedule = 'rechedule',
 }
