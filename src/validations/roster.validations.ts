@@ -68,9 +68,14 @@ export const rosterIdSchema = {
 };
 
 export const listRostersSchema = {
-    query: z.object({}).strict(),
+    query: z
+        .object({
+            trainerId: uuidSchema(validationMessages.roster.trainerIdInvalid).optional(),
+        })
+        .strict(),
 };
 
 export type CreateRosterBodyPayload = z.infer<typeof createRosterSchema.body>;
+export type ListRostersQueryPayload = z.infer<typeof listRostersSchema.query>;
 export type RosterIdParamsPayload = z.infer<typeof rosterIdSchema.params>;
 export type UpdateRosterStatusBodyPayload = z.infer<typeof updateRosterStatusSchema.body>;

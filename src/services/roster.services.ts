@@ -8,6 +8,7 @@ import { BranchEntity, TrainerRosterEntity, UserEntity } from '../utils/database
 import { BadRequestException, NotFoundException } from '../utils/error';
 import {
     CreateRosterBodyPayload,
+    ListRostersQueryPayload,
     RosterIdParamsPayload,
     UpdateRosterStatusBodyPayload,
 } from '../validations/roster.validations';
@@ -96,9 +97,12 @@ export class RosterService {
         return new RosterResponseDto(await this.getRoster(params.id, authUser));
     }
 
-    async listRosters(authUser: IJwtPayload): Promise<RosterListResponseDto> {
+    async listRosters(
+        query: ListRostersQueryPayload,
+        authUser: IJwtPayload,
+    ): Promise<RosterListResponseDto> {
         const assignedBranchIds = await this.getAssignedBranchIds(authUser);
-        const rosters = await this.rosterRepo.listRosters(assignedBranchIds);
+        const rosters = await this.rosterRepo.listRosters(assignedBranchIds, query.trainerId);
 
         return new RosterListResponseDto(rosters);
     }

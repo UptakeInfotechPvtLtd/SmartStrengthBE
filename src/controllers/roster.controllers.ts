@@ -4,6 +4,7 @@ import { messages } from '../lang/api-messages';
 import { RosterService } from '../services';
 import {
     CreateRosterBodyPayload,
+    ListRostersQueryPayload,
     RosterIdParamsPayload,
     UpdateRosterStatusBodyPayload,
 } from '../validations/roster.validations';
@@ -37,8 +38,8 @@ export class RosterController {
         return new BaseResponseDto('', result);
     }
 
-    async listRosters(req: IAuthenticatedRequest) {
-        const result = await this.rosterService.listRosters(req.user);
+    async listRosters(req: IAuthenticatedRequest<any, any, ListRostersQueryPayload>) {
+        const result = await this.rosterService.listRosters(req.query, req.user);
         return new BaseResponseDto('', result);
     }
 }

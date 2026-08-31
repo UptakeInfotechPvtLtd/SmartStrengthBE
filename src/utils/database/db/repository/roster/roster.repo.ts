@@ -115,7 +115,10 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
         });
     }
 
-    async listRosters(assignedBranchIds?: string[]): Promise<TrainerRosterEntity[]> {
+    async listRosters(
+        assignedBranchIds?: string[],
+        trainerId?: string,
+    ): Promise<TrainerRosterEntity[]> {
         return handleError(async () => {
             const queryBuilder = this.createQueryBuilder('roster')
                 .leftJoinAndSelect('roster.branch', 'branch')
@@ -126,6 +129,10 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
                 queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
                     assignedBranchIds: assignedBranchIds.length ? assignedBranchIds : [''],
                 });
+            }
+
+            if (trainerId) {
+                queryBuilder.andWhere('trainer.id = :trainerId', { trainerId });
             }
 
             queryBuilder
