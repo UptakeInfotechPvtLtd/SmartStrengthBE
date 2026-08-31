@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { AccessModule, AccessPermission, Roles } from '../config/enum';
+import { Roles } from '../config/enum';
 import { SlotController } from '../controllers';
-import { requireAccessPermission, routeHandler, slotService, verifyToken } from '../utils';
+import { routeHandler, slotService, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import { availableSlotsSchema } from '../validations';
 
@@ -13,7 +13,6 @@ const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 router.get(
     '/available',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.BookingManagement, AccessPermission.Read),
     validate(availableSlotsSchema),
     routeHandler(slotController.getAvailableSlots),
 );
