@@ -67,14 +67,21 @@ export class RosterService {
     }
 
     async updateRosterStatus(
-        params: RosterIdParamsPayload,
         body: UpdateRosterStatusBodyPayload,
         authUser: IJwtPayload,
-    ): Promise<RosterResponseDto> {
-        const roster = await this.getRoster(params.id, authUser);
-        roster.status = body.status;
+    ): Promise<RosterResponseDto[]> {
+        const assignedBranchIds = await this.getAssignedBranchIds(authUser);
+        const rosters = await this.rosterRepo.updateRosterStatusByDay(
+            body.dayOfWeek,
+            body.status,
+            assignedBranchIds,
+        );
 
-        return new RosterResponseDto(await this.rosterRepo.updateRoster(roster));
+        if (!rosters.length) {
+            throw new NotFoundException(messages.rosterNotFound);
+        }
+
+        return rosters.map((roster) => new RosterResponseDto(roster));
     }
 
     async deleteRoster(params: RosterIdParamsPayload, authUser: IJwtPayload): Promise<void> {

@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { AccessModule, AccessPermission, Roles } from '../config';
 import { PackageController } from '../controllers';
-import { packageService, requireAccessPermission, routeHandler, verifyToken } from '../utils';
+import {
+    optionalVerifyToken,
+    packageService,
+    requireAccessPermission,
+    routeHandler,
+    verifyToken,
+} from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createPackageSchema,
@@ -28,8 +34,7 @@ router.post(
 );
 router.get(
     '/',
-    verifyToken(authRoles),
-    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
+    optionalVerifyToken(authRoles),
     validate(listPackagesSchema),
     routeHandler(packageController.listPackages),
 );
@@ -48,8 +53,7 @@ router.get(
 );
 router.get(
     '/:id',
-    verifyToken(authRoles),
-    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
+    optionalVerifyToken(authRoles),
     validate(packageIdSchema),
     routeHandler(packageController.getPackageById),
 );

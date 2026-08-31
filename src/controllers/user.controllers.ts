@@ -4,6 +4,7 @@ import { messages } from '../lang/api-messages';
 import { UserService } from '../services';
 import {
     CreateManagedUserBodyPayload,
+    CreateUserMetricBodyPayload,
     FetchUsersQueryPayload,
     ManagedUserIdParamsPayload,
     UpdateManagedUserBodyPayload,
@@ -17,6 +18,7 @@ export class UserController {
         this.updateUser = this.updateUser.bind(this);
         this.updateUserStatus = this.updateUserStatus.bind(this);
         this.deleteUser = this.deleteUser.bind(this);
+        this.addUserMetric = this.addUserMetric.bind(this);
         this.getUserById = this.getUserById.bind(this);
         this.listUsers = this.listUsers.bind(this);
         this.viewProfile = this.viewProfile.bind(this);
@@ -45,6 +47,13 @@ export class UserController {
     async deleteUser(req: IAuthenticatedRequest<ManagedUserIdParamsPayload>) {
         await this.userService.deleteUser(req.params, req.user);
         return new BaseResponseDto(messages.userDeletedSuccessfully);
+    }
+
+    async addUserMetric(
+        req: IAuthenticatedRequest<ManagedUserIdParamsPayload, CreateUserMetricBodyPayload>,
+    ) {
+        const result = await this.userService.addUserMetric(req.params, req.body, req.user);
+        return new BaseResponseDto(messages.performanceMetricAddedSuccessfully, result);
     }
 
     async getUserById(req: IAuthenticatedRequest<ManagedUserIdParamsPayload>) {

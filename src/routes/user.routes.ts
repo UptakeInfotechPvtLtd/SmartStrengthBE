@@ -5,6 +5,7 @@ import { requireAccessPermission, routeHandler, userService, verifyToken } from 
 import validate from '../utils/middleware/validation.middleware';
 import {
     createManagedUserSchema,
+    createUserMetricSchema,
     listManagedUsersSchema,
     managedUserIdSchema,
     updateProfileSchema,
@@ -37,6 +38,13 @@ router.put(
     verifyToken(authRoles),
     validate(updateProfileSchema),
     routeHandler(userController.updateProfile),
+);
+router.post(
+    '/:id/metrics',
+    verifyToken([Roles.Admin, Roles.SubAdmin]),
+    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
+    validate(createUserMetricSchema),
+    routeHandler(userController.addUserMetric),
 );
 router.get(
     '/:id',

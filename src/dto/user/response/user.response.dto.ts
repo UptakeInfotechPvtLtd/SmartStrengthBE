@@ -11,13 +11,21 @@ const formatMetricDate = (value?: string | null): string => {
 export class UserPerformanceMetricResponseDto {
     id!: string;
     date!: string;
+    metricName!: string;
+    resultValue!: string;
     metrics!: UserEntity['performanceMetrics'][number]['metrics'];
     createdAt!: Date;
     updatedAt!: Date;
 
     constructor(performanceMetric?: UserEntity['performanceMetrics'][number]) {
+        const [metricName = '', resultValue = ''] =
+            Object.entries(performanceMetric?.metrics || {})[0] || [];
+
         this.id = performanceMetric?.id || '';
         this.date = formatMetricDate(performanceMetric?.metric_date);
+        this.metricName = metricName;
+        this.resultValue =
+            resultValue === null || resultValue === undefined ? '' : String(resultValue);
         this.metrics = performanceMetric?.metrics || {};
         this.createdAt = performanceMetric?.created_at!;
         this.updatedAt = performanceMetric?.updated_at!;

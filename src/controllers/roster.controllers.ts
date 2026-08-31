@@ -22,10 +22,8 @@ export class RosterController {
         return new BaseResponseDto(messages.rosterSavedSuccessfully, result);
     }
 
-    async updateRosterStatus(
-        req: IAuthenticatedRequest<RosterIdParamsPayload, UpdateRosterStatusBodyPayload>,
-    ) {
-        const result = await this.rosterService.updateRosterStatus(req.params, req.body, req.user);
+    async updateRosterStatus(req: IAuthenticatedRequest<any, UpdateRosterStatusBodyPayload>) {
+        const result = await this.rosterService.updateRosterStatus(req.body, req.user);
         return new BaseResponseDto(messages.rosterStatusUpdatedSuccessfully, result);
     }
 

@@ -55,9 +55,9 @@ const rosterParamsSchema = z
     .strict();
 
 export const updateRosterStatusSchema = {
-    params: rosterParamsSchema,
     body: z
         .object({
+            dayOfWeek: z.enum(RosterDay, { error: validationMessages.roster.dayOfWeekInvalid }),
             status: z.enum(RosterStatus, { error: validationMessages.roster.statusInvalid }),
         })
         .strict(),

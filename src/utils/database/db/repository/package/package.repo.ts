@@ -12,8 +12,10 @@ export class PackageRepository extends Repository<PackageEntity> {
         super(PackageEntity, dataSource.createEntityManager());
     }
 
-    async findPackageById(id?: string): Promise<PackageEntity | null> {
-        return handleError(() => this.findOne({ where: { id } }));
+    async findPackageById(id?: string, activeOnly = false): Promise<PackageEntity | null> {
+        return handleError(() =>
+            this.findOne({ where: { id, ...(activeOnly ? { status: true } : {}) } }),
+        );
     }
 
     async findPackageByName(packageName: string): Promise<PackageEntity | null> {
@@ -43,7 +45,10 @@ export class PackageRepository extends Repository<PackageEntity> {
         });
     }
 
-    async listPackages(query: FetchPackagesQueryPayload): Promise<{
+    async listPackages(
+        query: FetchPackagesQueryPayload,
+        activeOnly = false,
+    ): Promise<{
         packages: PackageEntity[];
         total: number;
         page: number;
@@ -54,6 +59,10 @@ export class PackageRepository extends Repository<PackageEntity> {
             async () => {
                 const { page, pageSize, offset, limit } = getOffset(query);
                 const queryBuilder = this.createQueryBuilder('package');
+
+                if (activeOnly) {
+                    queryBuilder.andWhere('package.status = :status', { status: true });
+                }
 
                 if (query.search) {
                     queryBuilder.andWhere(
@@ -72,7 +81,7 @@ export class PackageRepository extends Repository<PackageEntity> {
                 }
 
                 const status = this.normalizeStatus(query.status);
-                if (typeof status === 'boolean') {
+                if (!activeOnly && typeof status === 'boolean') {
                     queryBuilder.andWhere('package.status = :status', { status });
                 }
 

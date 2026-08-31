@@ -1,5 +1,5 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
-import { BranchStatus, Roles, UserStatus } from '../../../../../config/enum';
+import { BranchStatus, Roles, RosterStatus, UserStatus } from '../../../../../config/enum';
 import { handleError } from '../../../../error-handler';
 import { BranchEntity, TrainerRosterEntity, UserEntity } from '../../entity';
 
@@ -47,6 +47,45 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
         });
     }
 
+    async updateRosterStatusByDay(
+        dayOfWeek: string,
+        status: RosterStatus,
+        assignedBranchIds?: string[],
+    ): Promise<TrainerRosterEntity[]> {
+        return handleError(async () => {
+            const queryBuilder = this.createQueryBuilder('roster')
+                .leftJoin('roster.branch', 'branch')
+                .where('roster.day_of_week = :dayOfWeek', { dayOfWeek });
+
+            if (assignedBranchIds) {
+                queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                    assignedBranchIds: assignedBranchIds.length ? assignedBranchIds : [''],
+                });
+            }
+
+            const rosters = await queryBuilder.getMany();
+            if (!rosters.length) {
+                return [];
+            }
+
+            await this.createQueryBuilder()
+                .update(TrainerRosterEntity)
+                .set({ status })
+                .where('id IN (:...rosterIds)', { rosterIds: rosters.map((roster) => roster.id) })
+                .execute();
+
+            return this.createQueryBuilder('roster')
+                .leftJoinAndSelect('roster.branch', 'branch')
+                .leftJoinAndSelect('roster.trainer', 'trainer')
+                .where('roster.id IN (:...rosterIds)', {
+                    rosterIds: rosters.map((roster) => roster.id),
+                })
+                .orderBy('roster.start_time', 'ASC')
+                .addOrderBy('roster.created_at', 'DESC')
+                .getMany();
+        }, []);
+    }
+
     async softDeleteRoster(rosterId?: string): Promise<void> {
         return handleError(async () => {
             await this.createQueryBuilder()
@@ -80,7 +119,8 @@ export class RosterRepository extends Repository<TrainerRosterEntity> {
         return handleError(async () => {
             const queryBuilder = this.createQueryBuilder('roster')
                 .leftJoinAndSelect('roster.branch', 'branch')
-                .leftJoinAndSelect('roster.trainer', 'trainer');
+                .leftJoinAndSelect('roster.trainer', 'trainer')
+                .where('roster.status = :status', { status: RosterStatus.Working });
 
             if (assignedBranchIds) {
                 queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {

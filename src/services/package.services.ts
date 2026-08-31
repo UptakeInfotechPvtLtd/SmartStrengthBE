@@ -1,4 +1,4 @@
-import { IJwtPayload, UserStatus } from '../config';
+import { IJwtPayload, Roles, UserStatus } from '../config';
 import {
     PackageListResponseDto,
     PackagePurchaseListResponseDto,
@@ -74,13 +74,23 @@ export class PackageService {
         await this.packageRepo.softDeletePackage(packageData?.id);
     }
 
-    async getPackageById(params: PackageIdParamsPayload): Promise<PackageResponseDto> {
-        return new PackageResponseDto(await this.getPackage(params?.id));
+    async getPackageById(
+        params: PackageIdParamsPayload,
+        authUser?: IJwtPayload,
+    ): Promise<PackageResponseDto> {
+        return new PackageResponseDto(
+            await this.getPackage(params?.id, this.shouldShowOnlyActivePackages(authUser)),
+        );
     }
 
-    async listPackages(query: FetchPackagesQueryPayload): Promise<PackageListResponseDto> {
-        const { packages, total, page, pageSize, offset } =
-            await this.packageRepo.listPackages(query);
+    async listPackages(
+        query: FetchPackagesQueryPayload,
+        authUser?: IJwtPayload,
+    ): Promise<PackageListResponseDto> {
+        const { packages, total, page, pageSize, offset } = await this.packageRepo.listPackages(
+            query,
+            this.shouldShowOnlyActivePackages(authUser),
+        );
 
         return new PackageListResponseDto(
             packages,
@@ -134,8 +144,8 @@ export class PackageService {
         );
     }
 
-    private async getPackage(id?: string) {
-        const packageData = await this.packageRepo.findPackageById(id);
+    private async getPackage(id?: string, activeOnly = false) {
+        const packageData = await this.packageRepo.findPackageById(id, activeOnly);
         if (!packageData) {
             throw new NotFoundException(messages.packageNotFound);
         }
@@ -149,4 +159,7 @@ export class PackageService {
         return expiredAt;
     }
 
+    private shouldShowOnlyActivePackages(authUser?: IJwtPayload): boolean {
+        return ![Roles.Admin, Roles.SubAdmin].includes(authUser?.roleName as Roles);
+    }
 }

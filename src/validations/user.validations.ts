@@ -93,6 +93,17 @@ const performanceMetricEntrySchema = z
         metrics: performanceMetricsSchema,
     })
     .strict();
+const userMetricBodySchema = z
+    .object({
+        metricName: requiredString(validationMessages.user.metricNameRequired).max(100, {
+            error: validationMessages.user.metricNameMaxLength,
+        }),
+        resultValue: requiredString(validationMessages.user.resultValueRequired).max(100, {
+            error: validationMessages.user.resultValueMaxLength,
+        }),
+        date: performanceMetricDateSchema,
+    })
+    .strict();
 
 export const createManagedUserSchema = {
     body: z
@@ -266,6 +277,11 @@ export const managedUserIdSchema = {
     params: updateManagedUserSchema.params,
 };
 
+export const createUserMetricSchema = {
+    params: updateManagedUserSchema.params,
+    body: userMetricBodySchema,
+};
+
 export const listManagedUsersSchema = {
     query: z
         .object({
@@ -298,6 +314,7 @@ export const listManagedUsersSchema = {
 export type CreateManagedUserBodyPayload = z.infer<typeof createManagedUserSchema.body>;
 export type UpdateManagedUserBodyPayload = z.infer<typeof updateManagedUserSchema.body>;
 export type ManagedUserIdParamsPayload = z.infer<typeof managedUserIdSchema.params>;
+export type CreateUserMetricBodyPayload = z.infer<typeof createUserMetricSchema.body>;
 export type UpdateManagedUserStatusBodyPayload = z.infer<typeof updateManagedUserStatusSchema.body>;
 export type FetchUsersQueryPayload = z.infer<typeof listManagedUsersSchema.query>;
 export type UpdateProfileBodyPayload = z.infer<typeof updateProfileSchema.body>;

@@ -49,12 +49,12 @@ export class PackageController {
     }
 
     async getPackageById(req: IAuthenticatedRequest<PackageIdParamsPayload>) {
-        const result = await this.packageService.getPackageById(req.params);
+        const result = await this.packageService.getPackageById(req.params, req.user);
         return new BaseResponseDto('', result);
     }
 
     async listPackages(req: IAuthenticatedRequest<any, any, FetchPackagesQueryPayload>) {
-        const result = await this.packageService.listPackages(req.query);
+        const result = await this.packageService.listPackages(req.query, req.user);
         return new BaseResponseDto('', result);
     }
 

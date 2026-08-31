@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 import { IJwtPayload, Roles, UserStatus } from '../config';
-import { UserListResponseDto, UserResponseDto } from '../dto';
+import { UserListResponseDto, UserPerformanceMetricResponseDto, UserResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
@@ -18,6 +18,7 @@ import {
 } from '../utils';
 import {
     CreateManagedUserBodyPayload,
+    CreateUserMetricBodyPayload,
     FetchUsersQueryPayload,
     ManagedUserIdParamsPayload,
     UpdateManagedUserBodyPayload,
@@ -137,6 +138,22 @@ export class UserService {
     async deleteUser(params: ManagedUserIdParamsPayload, authUser: IJwtPayload): Promise<void> {
         const user = await this.getAccessibleUser(params.id, authUser);
         await this.userRepo.softDeleteUser(user?.id);
+    }
+
+    async addUserMetric(
+        params: ManagedUserIdParamsPayload,
+        body: CreateUserMetricBodyPayload,
+        authUser: IJwtPayload,
+    ): Promise<UserPerformanceMetricResponseDto> {
+        const user = await this.getAccessibleUser(params.id, authUser);
+        this.ensurePerformanceMetricsAllowed(user);
+
+        const performanceMetric = await this.userRepo.addUserPerformanceMetric(user, {
+            metric_date: body.date,
+            metrics: { [body.metricName]: body.resultValue },
+        });
+
+        return new UserPerformanceMetricResponseDto(performanceMetric);
     }
 
     async getUserById(

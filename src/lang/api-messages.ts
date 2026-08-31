@@ -59,6 +59,7 @@ export const messages = {
     performanceMetricsAllowedOnlyForNormalUser:
         'Performance metrics are allowed only for normal user.',
     performanceMetricsDateAlreadyExists: 'Performance metrics already exist for selected date.',
+    performanceMetricAddedSuccessfully: 'Performance metric added successfully.',
     invalidBranchIds: 'Selected branch is unavailable. Please choose an active branch.',
     sessionNotFound: 'Selected session is not available.',
     packageNotFound: 'Selected package is not available.',
@@ -679,6 +680,10 @@ export const validationMessages = {
         statusInvalid: 'Status must be active or inactive.',
         searchString: 'Search must be a string.',
         searchMaxLength: 'Search cannot exceed 255 characters.',
+        metricNameRequired: 'Metric name is required.',
+        metricNameMaxLength: 'Metric name cannot exceed 100 characters.',
+        resultValueRequired: 'Result value is required.',
+        resultValueMaxLength: 'Result value cannot exceed 100 characters.',
     },
     accessControl: {
         moduleInvalid: 'Please select a valid module.',

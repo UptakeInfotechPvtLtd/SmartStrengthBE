@@ -29,19 +29,19 @@ router.get(
     validate(listRostersSchema),
     routeHandler(rosterController.listRosters),
 );
+router.patch(
+    '/status',
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.RosterManagement, AccessPermission.Update),
+    validate(updateRosterStatusSchema),
+    routeHandler(rosterController.updateRosterStatus),
+);
 router.get(
     '/:id',
     verifyToken(authRoles),
     requireAccessPermission(AccessModule.RosterManagement, AccessPermission.Read),
     validate(rosterIdSchema),
     routeHandler(rosterController.getRosterById),
-);
-router.patch(
-    '/:id/status',
-    verifyToken(authRoles),
-    requireAccessPermission(AccessModule.RosterManagement, AccessPermission.Update),
-    validate(updateRosterStatusSchema),
-    routeHandler(rosterController.updateRosterStatus),
 );
 router.delete(
     '/:id',
