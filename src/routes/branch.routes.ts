@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import { BranchController } from '../controllers';
 import { AccessModule, AccessPermission, Roles } from '../config';
-import { branchService, requireAccessPermission, routeHandler, verifyToken } from '../utils';
+import {
+    branchService,
+    optionalVerifyToken,
+    requireAccessPermission,
+    routeHandler,
+    verifyToken,
+} from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     branchIdSchema,
@@ -26,8 +32,7 @@ router.post(
 );
 router.get(
     '/',
-    verifyToken(authRoles),
-    requireAccessPermission(AccessModule.BranchManagement, AccessPermission.Read),
+    optionalVerifyToken(authRoles),
     validate(listBranchesSchema),
     routeHandler(branchController.listBranches),
 );

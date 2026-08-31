@@ -51,6 +51,7 @@ export class BranchRepository extends Repository<BranchEntity> {
     async listBranches(
         query: FetchBranchesQueryPayload,
         assignedBranchIds?: string[],
+        activeOnly = false,
     ): Promise<{
         branches: BranchEntity[];
         total: number;
@@ -72,6 +73,12 @@ export class BranchRepository extends Repository<BranchEntity> {
                     });
                 }
 
+                if (activeOnly) {
+                    queryBuilder.andWhere('branch.status = :activeStatus', {
+                        activeStatus: BranchStatus.Active,
+                    });
+                }
+
                 if (query.search) {
                     queryBuilder.andWhere(
                         new Brackets((qb) => {
@@ -88,7 +95,7 @@ export class BranchRepository extends Repository<BranchEntity> {
                     );
                 }
 
-                if (query.status) {
+                if (!activeOnly && query.status) {
                     queryBuilder.andWhere('LOWER(branch.status) = :status', {
                         status: query.status.toLowerCase(),
                     });

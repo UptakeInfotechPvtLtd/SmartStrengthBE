@@ -77,12 +77,13 @@ export class BranchService {
 
     async listBranches(
         query: FetchBranchesQueryPayload,
-        authUser: IJwtPayload,
+        authUser?: IJwtPayload,
     ): Promise<BranchListResponseDto> {
         const assignedBranchIds = await this.getListAssignedBranchIds(query.userId, authUser);
         const { branches, total, page, pageSize, offset } = await this.branchRepo.listBranches(
             query,
             assignedBranchIds,
+            this.shouldShowOnlyActiveBranches(authUser),
         );
 
         return new BranchListResponseDto(
@@ -112,10 +113,10 @@ export class BranchService {
 
     private async getListAssignedBranchIds(
         userId: string | undefined,
-        authUser: IJwtPayload,
+        authUser?: IJwtPayload,
     ): Promise<string[] | undefined> {
         const authAssignedBranchIds = await this.getUserAssignedBranchIds(
-            this.getAssignedUserId(authUser),
+            this.getListAssignedUserId(authUser),
         );
         const filterAssignedBranchIds = await this.getFilterUserAssignedBranchIds(userId);
 
@@ -166,6 +167,12 @@ export class BranchService {
         return this.extractAssignedBranchIds(user);
     }
 
+    private getListAssignedUserId(authUser?: IJwtPayload): string | undefined {
+        return [Roles.Trainer, Roles.User].includes(authUser?.roleName as Roles)
+            ? authUser?.userId
+            : undefined;
+    }
+
     private extractAssignedBranchIds(user: { userBranches?: UserBranchEntity[] }): string[] {
         return (
             user.userBranches
@@ -184,5 +191,9 @@ export class BranchService {
                 user: { id: authUser.userId },
             } as UserBranchEntity,
         ];
+    }
+
+    private shouldShowOnlyActiveBranches(authUser?: IJwtPayload): boolean {
+        return ![Roles.Admin, Roles.SubAdmin].includes(authUser?.roleName as Roles);
     }
 }
