@@ -218,6 +218,10 @@ export class UserService {
             await this.ensureBranchesAllowed(query.branchIds, authUser);
         }
 
+        if (query.branchId) {
+            await this.ensureBranchesAllowed([query.branchId], authUser);
+        }
+
         const assignedBranchIds =
             authUser?.roleName === Roles.SubAdmin
                 ? await this.userRepo.findAssignedBranchIds(authUser?.userId)

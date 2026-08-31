@@ -297,7 +297,16 @@ export const listManagedUsersSchema = {
                 })
                 .optional(),
             status: statusSchema.optional(),
+            branchId: z
+                .string()
+                .refine((value) => uuidRegex.test(value), {
+                    error: validationMessages.user.branchIdInvalid,
+                })
+                .optional(),
             branchIds: branchIdsQuerySchema,
+            userType: z
+                .enum(UserType, { error: validationMessages.signUp.invalidUserType })
+                .optional(),
             orderBy: z
                 .enum(['full_name', 'email', 'phone_no', 'created_at', 'updated_at'])
                 .optional()

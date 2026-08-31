@@ -120,6 +120,16 @@ export class UserRepository extends Repository<UserEntity> {
                     queryBuilder.andWhere('user.status = :status', { status: query.status });
                 }
 
+                if (query.userType) {
+                    queryBuilder.andWhere('user.user_type = :userType', {
+                        userType: query.userType,
+                    });
+                }
+
+                if (query.branchId) {
+                    queryBuilder.andWhere('branch.id = :branchId', { branchId: query.branchId });
+                }
+
                 if (query.branchIds?.length) {
                     queryBuilder.andWhere('branch.id IN (:...branchIds)', {
                         branchIds: query.branchIds,
