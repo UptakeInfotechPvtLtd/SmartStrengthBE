@@ -14,6 +14,7 @@ import {
     IndividualCoachingSessionsPerWeek,
     MuscleGroup,
     OtpPurpose,
+    PackageType,
     SachinSessionSessionsPerWeek,
     SchoolProgrammeOfInterest,
     SchoolRole,
@@ -48,6 +49,7 @@ export class CommonDropdownResponseDto {
     difficulties!: DropdownOptionDto[];
     videoSources!: DropdownOptionDto[];
     videoStatuses!: DropdownOptionDto[];
+    packageTypes!: DropdownOptionDto[];
     enquiry!: {
         enquiryTypes: DropdownOptionDto[];
         individualCoachingPrimaryGoals: DropdownOptionDto[];
@@ -80,6 +82,7 @@ export class CommonDropdownResponseDto {
         this.difficulties = this.createEnumOptions(Difficulty);
         this.videoSources = this.createEnumOptions(VideoSource);
         this.videoStatuses = this.createEnumOptions(VideoStatus);
+        this.packageTypes = this.createEnumOptions(PackageType);
         this.enquiry = {
             enquiryTypes: this.createEnumOptions(EnquiryType),
             individualCoachingPrimaryGoals: this.createEnumOptions(IndividualCoachingPrimaryGoal),
