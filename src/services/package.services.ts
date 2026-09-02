@@ -134,9 +134,12 @@ export class PackageService {
 
     async listPackagePurchases(
         query: FetchPackagePurchasesQueryPayload,
+        authUser: IJwtPayload,
     ): Promise<PackagePurchaseListResponseDto> {
+        const purchaseQuery =
+            authUser?.roleName === Roles.User ? { ...query, userId: authUser.userId } : query;
         const { purchases, total, page, pageSize, offset } =
-            await this.packageRepo.listUserPackagePurchases(query);
+            await this.packageRepo.listUserPackagePurchases(purchaseQuery);
 
         return new PackagePurchaseListResponseDto(
             purchases,

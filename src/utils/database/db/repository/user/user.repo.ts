@@ -1,5 +1,8 @@
 import { Brackets, DataSource, In, Repository } from 'typeorm';
-import { FetchUsersQueryPayload } from '../../../../../validations';
+import {
+    FetchLoggedInUserPerformanceMetricsQueryPayload,
+    FetchUsersQueryPayload,
+} from '../../../../../validations';
 import { Roles, UserStatus } from '../../../../../config';
 import { getOffset } from '../../../../common.utils';
 import { handleError } from '../../../../error-handler';
@@ -49,6 +52,7 @@ export class UserRepository extends Repository<UserEntity> {
     }
 
     async findUserByIdWithRole(userId?: string): Promise<UserEntity | null> {
+        if (!userId) return null;
         return handleError(() =>
             this.findOne({
                 where: { id: userId },
@@ -63,7 +67,7 @@ export class UserRepository extends Repository<UserEntity> {
     }
 
     async updateUser(user: UserEntity): Promise<UserEntity> {
-        return handleError(() => this.save(user));
+        return this.save(user);
     }
 
     async softDeleteUser(userId?: string): Promise<void> {
@@ -216,6 +220,57 @@ export class UserRepository extends Repository<UserEntity> {
                     metrics: performanceMetric.metrics,
                 }),
             ),
+        );
+    }
+
+    async listUserPerformanceMetrics(
+        userId: string,
+        query: FetchLoggedInUserPerformanceMetricsQueryPayload,
+    ): Promise<{
+        performanceMetrics: UserPerformanceMetricEntity[];
+        total: number;
+        page: number;
+        pageSize: number;
+        offset: number;
+    }> {
+        return handleError(
+            async () => {
+                const { page, pageSize, offset, limit } = getOffset(query);
+                const queryBuilder = this.manager
+                    .getRepository(UserPerformanceMetricEntity)
+                    .createQueryBuilder('performanceMetric')
+                    .innerJoin('performanceMetric.user', 'user')
+                    .where('user.id = :userId', { userId });
+
+                if (query.fromDate) {
+                    queryBuilder.andWhere('performanceMetric.metric_date >= :fromDate', {
+                        fromDate: query.fromDate,
+                    });
+                }
+
+                if (query.toDate) {
+                    queryBuilder.andWhere('performanceMetric.metric_date <= :toDate', {
+                        toDate: query.toDate,
+                    });
+                }
+
+                queryBuilder
+                    .orderBy('performanceMetric.created_at', 'DESC')
+                    .addOrderBy('performanceMetric.id', 'DESC')
+                    .skip(offset)
+                    .take(limit);
+
+                const [performanceMetrics, total] = await queryBuilder.getManyAndCount();
+
+                return { performanceMetrics, total, page, pageSize, offset };
+            },
+            {
+                performanceMetrics: [],
+                total: 0,
+                page: Number(query.page) || 1,
+                pageSize: Number(query.pageSize) || 10,
+                offset: 0,
+            },
         );
     }
 }

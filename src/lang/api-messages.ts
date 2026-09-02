@@ -60,6 +60,7 @@ export const messages = {
         'Performance metrics are allowed only for normal user.',
     performanceMetricsDateAlreadyExists: 'Performance metrics already exist for selected date.',
     performanceMetricAddedSuccessfully: 'Performance metric added successfully.',
+    performanceMetricsFetchedSuccessfully: 'Performance metrics fetched successfully.',
     invalidBranchIds: 'Selected branch is unavailable. Please choose an active branch.',
     sessionNotFound: 'Selected session is not available.',
     packageNotFound: 'Selected package is not available.',
@@ -662,6 +663,7 @@ export const validationMessages = {
         phoneNumberMaxLength: 'Phone number cannot exceed 20 characters.',
         phoneNumberInvalid: 'Phone number contains invalid characters.',
         dobRequired: 'Date of birth is required.',
+        dobDateInvalid: 'Date of birth must be in dd/mm/yyyy format.',
         contactNumberString: 'Contact number must be a string.',
         contactNumberMaxLength: 'Contact number cannot exceed 20 characters.',
         contactNumberInvalid: 'Contact number contains invalid characters.',
@@ -684,6 +686,7 @@ export const validationMessages = {
         metricNameMaxLength: 'Metric name cannot exceed 100 characters.',
         resultValueRequired: 'Result value is required.',
         resultValueMaxLength: 'Result value cannot exceed 100 characters.',
+        toDateMustBeAfterFromDate: 'To date must be after or equal to from date.',
     },
     accessControl: {
         moduleInvalid: 'Please select a valid module.',

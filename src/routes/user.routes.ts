@@ -6,6 +6,7 @@ import validate from '../utils/middleware/validation.middleware';
 import {
     createManagedUserSchema,
     createUserMetricSchema,
+    listLoggedInUserPerformanceMetricsSchema,
     listManagedUsersSchema,
     managedUserIdSchema,
     updateProfileSchema,
@@ -33,6 +34,12 @@ router.get(
     routeHandler(userController.listUsers),
 );
 router.get('/profile', verifyToken(authRoles), routeHandler(userController.viewProfile));
+router.get(
+    '/profile/performance-metrics',
+    verifyToken([Roles.User]),
+    validate(listLoggedInUserPerformanceMetricsSchema),
+    routeHandler(userController.listLoggedInUserPerformanceMetrics),
+);
 router.put(
     '/profile',
     verifyToken(authRoles),

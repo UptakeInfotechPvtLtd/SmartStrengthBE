@@ -104,3 +104,18 @@ export class UserListResponseDto {
         this.pagination = pagination;
     }
 }
+
+export class UserPerformanceMetricListResponseDto {
+    results!: UserPerformanceMetricResponseDto[];
+    pagination!: IPaginationMeta;
+
+    constructor(
+        performanceMetrics: UserEntity['performanceMetrics'],
+        pagination: IPaginationMeta,
+    ) {
+        this.results = performanceMetrics.map(
+            (performanceMetric) => new UserPerformanceMetricResponseDto(performanceMetric),
+        );
+        this.pagination = pagination;
+    }
+}

@@ -23,7 +23,7 @@ const router = Router();
 
 const packageController = new PackageController(packageService);
 const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
-const purchaseViewRoles = [Roles.Admin, Roles.SubAdmin];
+const purchaseViewRoles = [Roles.Admin, Roles.SubAdmin, Roles.User];
 
 router.post(
     '/',
@@ -47,7 +47,6 @@ router.post(
 router.get(
     '/purchases',
     verifyToken(purchaseViewRoles),
-    requireAccessPermission(AccessModule.PackageManagement, AccessPermission.Read),
     validate(listPackagePurchasesSchema),
     routeHandler(packageController.listPackagePurchases),
 );

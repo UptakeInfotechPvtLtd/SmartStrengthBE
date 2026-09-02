@@ -79,6 +79,24 @@ const parseMetricDate = (value: string): string | null => {
 
     return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 };
+const optionalDateSchema = (requiredMessage: string, invalidMessage: string) =>
+    z
+        .union([z.string({ error: requiredMessage }).trim(), z.null()])
+        .optional()
+        .transform((value) => {
+            if (value === null || value === undefined || value === '') return undefined;
+            return value;
+        })
+        .pipe(
+            z
+                .string()
+                .regex(dateRegex, { error: invalidMessage })
+                .refine((value) => parseMetricDate(value) !== null, {
+                    error: invalidMessage,
+                })
+                .transform((value) => parseMetricDate(value)!)
+                .optional(),
+        );
 const performanceMetricDateSchema = requiredString(
     validationMessages.signUp.performanceMetricDateRequired,
 )
@@ -251,12 +269,25 @@ export const updateProfileSchema = {
                     .regex(/^[+0-9()\-\s]+$/, { error: validationMessages.user.phoneNumberInvalid })
                     .optional(),
             ),
+            contactNumber: optionalString(validationMessages.user.contactNumberString).pipe(
+                z
+                    .string()
+                    .max(20, { error: validationMessages.user.contactNumberMaxLength })
+                    .regex(/^[+0-9()\-\s]+$/, {
+                        error: validationMessages.user.contactNumberInvalid,
+                    })
+                    .optional(),
+            ),
             age: z.coerce
                 .number({ error: validationMessages.signUp.ageNumber })
                 .int({ error: validationMessages.signUp.ageInteger })
                 .min(1, { error: validationMessages.signUp.ageMin })
                 .max(120, { error: validationMessages.signUp.ageMax })
                 .optional(),
+            dob: optionalDateSchema(
+                validationMessages.user.dobRequired,
+                validationMessages.user.dobDateInvalid,
+            ),
             gender: z.enum(Gender, { error: validationMessages.signUp.invalidGender }).optional(),
             userType: z
                 .enum(UserType, { error: validationMessages.signUp.invalidUserType })
@@ -267,9 +298,33 @@ export const updateProfileSchema = {
                     .max(500, { error: validationMessages.user.profileImageUrlMaxLength })
                     .optional(),
             ),
+            profilePicUrl: optionalString(validationMessages.user.profileImageUrlString).pipe(
+                z
+                    .string()
+                    .max(500, { error: validationMessages.user.profileImageUrlMaxLength })
+                    .optional(),
+            ),
             performanceMetrics: performanceMetricEntrySchema.optional(),
             password: optionalPasswordSchema,
         })
+        .strict(),
+};
+
+export const listLoggedInUserPerformanceMetricsSchema = {
+    query: z
+        .object({
+            page: z.coerce.number().int().positive().optional(),
+            pageSize: z.coerce.number().int().positive().max(100).optional(),
+            fromDate: performanceMetricDateSchema.optional(),
+            toDate: performanceMetricDateSchema.optional(),
+        })
+        .refine(
+            (query) => !query.fromDate || !query.toDate || query.fromDate <= query.toDate,
+            {
+                error: validationMessages.user.toDateMustBeAfterFromDate,
+                path: ['toDate'],
+            },
+        )
         .strict(),
 };
 
@@ -327,3 +382,6 @@ export type CreateUserMetricBodyPayload = z.infer<typeof createUserMetricSchema.
 export type UpdateManagedUserStatusBodyPayload = z.infer<typeof updateManagedUserStatusSchema.body>;
 export type FetchUsersQueryPayload = z.infer<typeof listManagedUsersSchema.query>;
 export type UpdateProfileBodyPayload = z.infer<typeof updateProfileSchema.body>;
+export type FetchLoggedInUserPerformanceMetricsQueryPayload = z.infer<
+    typeof listLoggedInUserPerformanceMetricsSchema.query
+>;

@@ -66,7 +66,7 @@ export class PackageController {
     async listPackagePurchases(
         req: IAuthenticatedRequest<any, any, FetchPackagePurchasesQueryPayload>,
     ) {
-        const result = await this.packageService.listPackagePurchases(req.query);
+        const result = await this.packageService.listPackagePurchases(req.query, req.user);
         return new BaseResponseDto(messages.packagePurchasesFetchedSuccessfully, result);
     }
 }

@@ -5,6 +5,7 @@ import { UserService } from '../services';
 import {
     CreateManagedUserBodyPayload,
     CreateUserMetricBodyPayload,
+    FetchLoggedInUserPerformanceMetricsQueryPayload,
     FetchUsersQueryPayload,
     ManagedUserIdParamsPayload,
     UpdateManagedUserBodyPayload,
@@ -21,6 +22,8 @@ export class UserController {
         this.addUserMetric = this.addUserMetric.bind(this);
         this.getUserById = this.getUserById.bind(this);
         this.listUsers = this.listUsers.bind(this);
+        this.listLoggedInUserPerformanceMetrics =
+            this.listLoggedInUserPerformanceMetrics.bind(this);
         this.viewProfile = this.viewProfile.bind(this);
         this.updateProfile = this.updateProfile.bind(this);
     }
@@ -66,12 +69,23 @@ export class UserController {
         return new BaseResponseDto(messages.usersFetchedSuccessfully, result);
     }
 
+    async listLoggedInUserPerformanceMetrics(
+        req: IAuthenticatedRequest<any, any, FetchLoggedInUserPerformanceMetricsQueryPayload>,
+    ) {
+        const result = await this.userService.listLoggedInUserPerformanceMetrics(
+            req.query,
+            req.user,
+        );
+        return new BaseResponseDto(messages.performanceMetricsFetchedSuccessfully, result);
+    }
+
     async viewProfile(req: IAuthenticatedRequest) {
         const result = await this.userService.viewProfile(req.user);
         return new BaseResponseDto(messages.profileFetchedSuccessfully, result);
     }
 
     async updateProfile(req: IAuthenticatedRequest<any, UpdateProfileBodyPayload>) {
+        console.log(req.user, 'User-----');
         const result = await this.userService.updateProfile(req.body, req.user);
         return new BaseResponseDto(messages.profileUpdatedSuccessfully, result);
     }

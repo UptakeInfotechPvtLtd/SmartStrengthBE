@@ -1,6 +1,11 @@
 import * as bcrypt from 'bcryptjs';
 import { IJwtPayload, Roles, UserStatus } from '../config';
-import { UserListResponseDto, UserPerformanceMetricResponseDto, UserResponseDto } from '../dto';
+import {
+    UserListResponseDto,
+    UserPerformanceMetricListResponseDto,
+    UserPerformanceMetricResponseDto,
+    UserResponseDto,
+} from '../dto';
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
@@ -19,6 +24,7 @@ import {
 import {
     CreateManagedUserBodyPayload,
     CreateUserMetricBodyPayload,
+    FetchLoggedInUserPerformanceMetricsQueryPayload,
     FetchUsersQueryPayload,
     ManagedUserIdParamsPayload,
     UpdateManagedUserBodyPayload,
@@ -182,11 +188,14 @@ export class UserService {
         }
 
         if (body.fullName !== undefined) user.full_name = body.fullName;
-        if (body.phoneNumber !== undefined) user.phone_no = body.phoneNumber;
+        const phoneNumber = body.contactNumber ?? body.phoneNumber;
+        if (phoneNumber !== undefined) user.phone_no = phoneNumber;
         if (body.age !== undefined) user.age = body.age;
+        if (body.dob !== undefined) user.dob = body.dob || null;
         if (body.gender !== undefined) user.gender = body.gender;
         if (body.userType !== undefined) user.user_type = body.userType;
-        if (body.profileImageUrl !== undefined) user.profile_image_url = body.profileImageUrl;
+        const profileImageUrl = body.profilePicUrl ?? body.profileImageUrl;
+        if (profileImageUrl !== undefined) user.profile_image_url = profileImageUrl;
         if (body.performanceMetrics !== undefined) {
             this.ensurePerformanceMetricsAllowed(user);
         }
@@ -198,6 +207,25 @@ export class UserService {
         }
         return new UserResponseDto(
             (await this.userRepo.findUserByIdWithRole(updatedUser?.id)) || updatedUser,
+        );
+    }
+
+    async listLoggedInUserPerformanceMetrics(
+        query: FetchLoggedInUserPerformanceMetricsQueryPayload,
+        authUser: IJwtPayload,
+    ): Promise<UserPerformanceMetricListResponseDto> {
+        const user = await this.userRepo.findUserByIdWithRole(authUser?.userId);
+        if (!user) {
+            throw new NotFoundException(messages.userNotFound);
+        }
+        this.ensurePerformanceMetricsAllowed(user);
+
+        const { performanceMetrics, total, page, pageSize, offset } =
+            await this.userRepo.listUserPerformanceMetrics(authUser.userId, query);
+
+        return new UserPerformanceMetricListResponseDto(
+            performanceMetrics,
+            buildPagination({ totalResults: total, page, pageSize, offset }),
         );
     }
 
