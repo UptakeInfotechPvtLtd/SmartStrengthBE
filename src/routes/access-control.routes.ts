@@ -5,8 +5,10 @@ import { accessControlService, routeHandler, verifyToken } from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     getAccessConfigSchema,
+    getUserAccessConfigSchema,
     roleAccessConfigSchema,
     upsertAccessConfigSchema,
+    upsertUserAccessConfigSchema,
 } from '../validations';
 
 const router = Router();
@@ -29,6 +31,12 @@ router.get(
     routeHandler(accessControlController.getRoleAccessConfig),
 );
 router.get(
+    '/user/:userId',
+    verifyToken(masterAdminRoles),
+    validate(getUserAccessConfigSchema),
+    routeHandler(accessControlController.getUserAccessConfig),
+);
+router.get(
     '/',
     verifyToken(masterAdminRoles),
     validate(getAccessConfigSchema),
@@ -39,6 +47,12 @@ router.put(
     verifyToken(masterAdminRoles),
     validate(upsertAccessConfigSchema),
     routeHandler(accessControlController.upsertAccessConfig),
+);
+router.put(
+    '/user',
+    verifyToken(masterAdminRoles),
+    validate(upsertUserAccessConfigSchema),
+    routeHandler(accessControlController.upsertUserAccessConfig),
 );
 
 export default router;

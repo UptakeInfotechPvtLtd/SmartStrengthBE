@@ -6,6 +6,11 @@ import { ForbiddenException } from '../error';
 
 const accessControlRepo = new AccessControlRepository(DbDataSource);
 
+type AccessPermissionRule = {
+    moduleKey: AccessModule;
+    permission: AccessPermission;
+};
+
 export const requireAccessPermission = (moduleKey: AccessModule, permission: AccessPermission) => {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
@@ -21,6 +26,38 @@ export const requireAccessPermission = (moduleKey: AccessModule, permission: Acc
                 moduleKey,
                 permission,
             );
+
+            if (!hasPermission) {
+                throw new ForbiddenException(messages.accessPermissionDenied);
+            }
+
+            next();
+        } catch (error: any) {
+            next(error);
+        }
+    };
+};
+
+export const requireAnyAccessPermission = (rules: AccessPermissionRule[]) => {
+    return async (req: Request, _res: Response, next: NextFunction) => {
+        try {
+            const authUser = (req as any).user;
+            if (authUser?.roleName === Roles.Admin) {
+                next();
+                return;
+            }
+
+            const permissionResults = await Promise.all(
+                rules.map((rule) =>
+                    accessControlRepo.hasPermission(
+                        authUser?.roleId,
+                        authUser?.userId,
+                        rule.moduleKey,
+                        rule.permission,
+                    ),
+                ),
+            );
+            const hasPermission = permissionResults.some(Boolean);
 
             if (!hasPermission) {
                 throw new ForbiddenException(messages.accessPermissionDenied);

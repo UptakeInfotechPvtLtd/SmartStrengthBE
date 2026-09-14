@@ -8,7 +8,12 @@ import {
     RoleRepository,
     UserRepository,
 } from '../utils';
-import { GetAccessConfigQueryPayload, UpsertAccessConfigBodyPayload } from '../validations';
+import {
+    GetAccessConfigQueryPayload,
+    GetUserAccessConfigParamsPayload,
+    UpsertAccessConfigBodyPayload,
+    UpsertUserAccessConfigBodyPayload,
+} from '../validations';
 import { RoleAccessConfigParamsPayload } from '../validations/access-control.validations';
 
 export class AccessControlService {
@@ -48,6 +53,18 @@ export class AccessControlService {
         return new AccessControlConfigResponseDto(modules, accessControls, role);
     }
 
+    async getUserAccessConfig(
+        params: GetUserAccessConfigParamsPayload,
+        authUser: IJwtPayload,
+    ): Promise<AccessControlConfigResponseDto> {
+        this.ensureMasterAdmin(authUser);
+        const modules = await this.ensureModules();
+        const user = await this.getConfigurableUser(params.userId);
+        const accessControls = await this.accessControlRepo.findAccessConfig(undefined, user.id);
+
+        return new AccessControlConfigResponseDto(modules, accessControls, user.role);
+    }
+
     async getMyAccessConfig(authUser: IJwtPayload): Promise<AccessControlConfigResponseDto> {
         const modules = await this.ensureModules();
         const role = authUser?.roleId ? await this.getRole(authUser.roleId) : null;
@@ -66,28 +83,27 @@ export class AccessControlService {
         this.ensureMasterAdmin(authUser);
         const role = await this.getConfigurableRole(body.roleId);
         const modules = await this.ensureModules();
-        const moduleByKey = new Map(modules.map((module) => [module.key, module]));
-
-        const entriesByModuleId = new Map<string, Set<AccessPermission>>();
-        body.access.forEach((entry) => {
-            const module = moduleByKey.get(entry.moduleKey);
-            if (!module) {
-                throw new BadRequestException(messages.invalidAccessModule);
-            }
-
-            const permissions = entriesByModuleId.get(module.id) || new Set<AccessPermission>();
-            entry.permissions.forEach((permission) => permissions.add(permission));
-            entriesByModuleId.set(module.id, permissions);
-        });
-        const entries = Array.from(entriesByModuleId.entries()).map(([moduleId, permissions]) => ({
-            moduleId,
-            permissions: Array.from(permissions),
-        }));
+        const entries = this.buildAccessEntries(body.access, modules);
 
         await this.accessControlRepo.replaceRoleAccess(role.id, entries);
         const accessControls = await this.accessControlRepo.findAccessConfig(role.id);
 
         return new AccessControlConfigResponseDto(modules, accessControls, role);
+    }
+
+    async upsertUserAccessConfig(
+        body: UpsertUserAccessConfigBodyPayload,
+        authUser: IJwtPayload,
+    ): Promise<AccessControlConfigResponseDto> {
+        this.ensureMasterAdmin(authUser);
+        const user = await this.getConfigurableUser(body.userId);
+        const modules = await this.ensureModules();
+        const entries = this.buildAccessEntries(body.access, modules);
+
+        await this.accessControlRepo.replaceUserAccess(user.id, entries);
+        const accessControls = await this.accessControlRepo.findAccessConfig(undefined, user.id);
+
+        return new AccessControlConfigResponseDto(modules, accessControls, user.role);
     }
 
     private ensureMasterAdmin(authUser: IJwtPayload): void {
@@ -105,6 +121,30 @@ export class AccessControlService {
     private async ensureModules() {
         await this.accessControlRepo.upsertModules([...availableAccessModules]);
         return this.accessControlRepo.findAllModules();
+    }
+
+    private buildAccessEntries(
+        access: UpsertAccessConfigBodyPayload['access'],
+        modules: Awaited<ReturnType<AccessControlRepository['findAllModules']>>,
+    ): { moduleId: string; permissions: AccessPermission[] }[] {
+        const moduleByKey = new Map(modules.map((module) => [module.key, module]));
+        const entriesByModuleId = new Map<string, Set<AccessPermission>>();
+
+        access.forEach((entry) => {
+            const module = moduleByKey.get(entry.moduleKey);
+            if (!module) {
+                throw new BadRequestException(messages.invalidAccessModule);
+            }
+
+            const permissions = entriesByModuleId.get(module.id) || new Set<AccessPermission>();
+            entry.permissions.forEach((permission) => permissions.add(permission));
+            entriesByModuleId.set(module.id, permissions);
+        });
+
+        return Array.from(entriesByModuleId.entries()).map(([moduleId, permissions]) => ({
+            moduleId,
+            permissions: Array.from(permissions),
+        }));
     }
 
     private async getConfigurableRole(roleId: string) {

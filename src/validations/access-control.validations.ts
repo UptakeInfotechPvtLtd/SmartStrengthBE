@@ -29,10 +29,27 @@ export const getAccessConfigSchema = {
         .strict(),
 };
 
+export const getUserAccessConfigSchema = {
+    params: z
+        .object({
+            userId: uuidSchema(validationMessages.accessControl.userIdInvalid),
+        })
+        .strict(),
+};
+
 export const upsertAccessConfigSchema = {
     body: z
         .object({
             roleId: uuidSchema(validationMessages.accessControl.roleIdInvalid),
+            access: z.array(accessEntrySchema),
+        })
+        .strict(),
+};
+
+export const upsertUserAccessConfigSchema = {
+    body: z
+        .object({
+            userId: uuidSchema(validationMessages.accessControl.userIdInvalid),
             access: z.array(accessEntrySchema),
         })
         .strict(),
@@ -47,5 +64,7 @@ export const roleAccessConfigSchema = {
 };
 
 export type GetAccessConfigQueryPayload = z.infer<typeof getAccessConfigSchema.query>;
+export type GetUserAccessConfigParamsPayload = z.infer<typeof getUserAccessConfigSchema.params>;
 export type UpsertAccessConfigBodyPayload = z.infer<typeof upsertAccessConfigSchema.body>;
+export type UpsertUserAccessConfigBodyPayload = z.infer<typeof upsertUserAccessConfigSchema.body>;
 export type RoleAccessConfigParamsPayload = z.infer<typeof roleAccessConfigSchema.params>;

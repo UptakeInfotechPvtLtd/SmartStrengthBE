@@ -25,11 +25,11 @@ export class TrainerRosterEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @ManyToOne(() => BranchEntity, (branch) => branch.trainerRosters, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => BranchEntity, (branch) => branch.trainerRosters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'branch_id' })
     branch!: BranchEntity;
 
-    @ManyToOne(() => UserEntity, (trainer) => trainer.trainerRosters, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => UserEntity, (trainer) => trainer.trainerRosters, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'trainer_id' })
     trainer!: UserEntity;
 

@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { AccessModule, AccessPermission, Roles } from '../config';
 import { UserController } from '../controllers';
-import { requireAccessPermission, routeHandler, userService, verifyToken } from '../utils';
+import {
+    requireAnyAccessPermission,
+    routeHandler,
+    userService,
+    verifyToken,
+} from '../utils';
 import validate from '../utils/middleware/validation.middleware';
 import {
     createManagedUserSchema,
@@ -22,14 +27,20 @@ const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 router.post(
     '/',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Create),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Create },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Create },
+    ]),
     validate(createManagedUserSchema),
     routeHandler(userController.addUser),
 );
 router.get(
     '/',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Read),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Read },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Read },
+    ]),
     validate(listManagedUsersSchema),
     routeHandler(userController.listUsers),
 );
@@ -49,35 +60,50 @@ router.put(
 router.post(
     '/:id/metrics',
     verifyToken([Roles.Admin, Roles.SubAdmin]),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Update },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Update },
+    ]),
     validate(createUserMetricSchema),
     routeHandler(userController.addUserMetric),
 );
 router.get(
     '/:id',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Read),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Read },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Read },
+    ]),
     validate(managedUserIdSchema),
     routeHandler(userController.getUserById),
 );
 router.put(
     '/:id',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Update },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Update },
+    ]),
     validate(updateManagedUserSchema),
     routeHandler(userController.updateUser),
 );
 router.patch(
     '/:id/status',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Update),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Update },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Update },
+    ]),
     validate(updateManagedUserStatusSchema),
     routeHandler(userController.updateUserStatus),
 );
 router.delete(
     '/:id',
     verifyToken(authRoles),
-    requireAccessPermission(AccessModule.UserManagement, AccessPermission.Delete),
+    requireAnyAccessPermission([
+        { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Delete },
+        { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Delete },
+    ]),
     validate(managedUserIdSchema),
     routeHandler(userController.deleteUser),
 );

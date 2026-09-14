@@ -34,7 +34,7 @@ export class EnquiryEntity {
     @Column({ type: 'varchar', length: 20 })
     mobile_number!: string;
 
-    @ManyToOne(() => BranchEntity, (branch) => branch.enquiries, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => BranchEntity, (branch) => branch.enquiries, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'branch_id' })
     branch!: BranchEntity;
 

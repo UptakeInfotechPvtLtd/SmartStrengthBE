@@ -30,25 +30,25 @@ export class BookingEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.bookings, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => UserEntity, (user) => user.bookings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user!: UserEntity;
 
-    @ManyToOne(() => SessionEntity, (session) => session.bookings, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => SessionEntity, (session) => session.bookings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'session_id' })
     session!: SessionEntity;
 
-    @ManyToOne(() => BranchEntity, (branch) => branch.bookings, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => BranchEntity, (branch) => branch.bookings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'branch_id' })
     branch!: BranchEntity;
 
-    @ManyToOne(() => UserEntity, (trainer) => trainer.trainerBookings, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => UserEntity, (trainer) => trainer.trainerBookings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'trainer_id' })
     trainer!: UserEntity;
 
     @ManyToOne(() => UserPackageEntity, (userPackage) => userPackage.bookings, {
         nullable: true,
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'user_package_id' })
     userPackage!: UserPackageEntity | null;

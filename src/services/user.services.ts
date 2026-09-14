@@ -233,7 +233,7 @@ export class UserService {
         query: FetchUsersQueryPayload,
         authUser: IJwtPayload,
     ): Promise<UserListResponseDto> {
-        const allowedRoles = this.getVisibleRoles(authUser?.roleName as Roles);
+        const allowedRoles = this.getListVisibleRoles(authUser?.roleName as Roles);
 
         if (query.roleId) {
             const role = await this.getRole(query.roleId);
@@ -328,6 +328,14 @@ export class UserService {
         }
 
         return [];
+    }
+
+    private getListVisibleRoles(roleName: Roles): Roles[] {
+        if (roleName === Roles.SubAdmin) {
+            return [Roles.Trainer];
+        }
+
+        return this.getVisibleRoles(roleName);
     }
 
     private ensureCanCreateRole(authRole: Roles, targetRole: Roles): void {

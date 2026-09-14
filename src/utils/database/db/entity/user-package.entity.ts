@@ -25,12 +25,12 @@ export class UserPackageEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.userPackages, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => UserEntity, (user) => user.userPackages, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user!: UserEntity;
 
     @ManyToOne(() => PackageEntity, (packageData) => packageData.userPackages, {
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'package_id' })
     package!: PackageEntity;

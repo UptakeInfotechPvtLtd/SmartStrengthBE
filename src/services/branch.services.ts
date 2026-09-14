@@ -168,7 +168,7 @@ export class BranchService {
     }
 
     private getListAssignedUserId(authUser?: IJwtPayload): string | undefined {
-        return [Roles.Trainer, Roles.User].includes(authUser?.roleName as Roles)
+        return [Roles.SubAdmin, Roles.Trainer, Roles.User].includes(authUser?.roleName as Roles)
             ? authUser?.userId
             : undefined;
     }

@@ -21,7 +21,7 @@ export class TestimonialEntity {
     @PrimaryGeneratedColumn('uuid')
     id!: string;
 
-    @ManyToOne(() => UserEntity, (user) => user.testimonials, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => UserEntity, (user) => user.testimonials, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user!: UserEntity;
 
