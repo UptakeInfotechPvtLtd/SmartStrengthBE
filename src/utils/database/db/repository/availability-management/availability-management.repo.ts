@@ -72,7 +72,10 @@ export class AvailabilityManagementRepository extends Repository<BranchAvailabil
         });
     }
 
-    async listTrainerAvailabilities(query: FetchTrainerAvailabilityQueryPayload): Promise<{
+    async listTrainerAvailabilities(
+        query: FetchTrainerAvailabilityQueryPayload,
+        assignedBranchIds?: string[],
+    ): Promise<{
         rows: TrainerAvailabilityEntity[];
         total: number;
         page: number;
@@ -95,6 +98,12 @@ export class AvailabilityManagementRepository extends Repository<BranchAvailabil
                         'availability.trainer_id = trainer.id AND availability.deleted_at IS NULL',
                     )
                     .where('role.name = :roleName', { roleName: Roles.Trainer });
+
+                if (assignedBranchIds) {
+                    queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                        assignedBranchIds: assignedBranchIds.length ? assignedBranchIds : [''],
+                    });
+                }
 
                 if (query.search) {
                     queryBuilder.andWhere(

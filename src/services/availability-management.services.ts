@@ -110,9 +110,14 @@ export class AvailabilityManagementService {
 
     async listTrainerAvailabilities(
         query: FetchTrainerAvailabilityQueryPayload,
+        authUser: IJwtPayload,
     ): Promise<TrainerAvailabilityListResponseDto> {
+        const assignedBranchIds =
+            authUser?.roleName === Roles.SubAdmin
+                ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
+                : undefined;
         const { rows, total, page, pageSize, offset } =
-            await this.availabilityRepo.listTrainerAvailabilities(query);
+            await this.availabilityRepo.listTrainerAvailabilities(query, assignedBranchIds);
 
         return new TrainerAvailabilityListResponseDto(
             rows,

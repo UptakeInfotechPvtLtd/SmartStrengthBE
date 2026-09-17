@@ -84,7 +84,10 @@ export class AvailabilityManagementController {
     async listTrainerAvailabilities(
         req: IAuthenticatedRequest<any, any, FetchTrainerAvailabilityQueryPayload>,
     ) {
-        const result = await this.availabilityService.listTrainerAvailabilities(req.query);
+        const result = await this.availabilityService.listTrainerAvailabilities(
+            req.query,
+            req.user,
+        );
         return new BaseResponseDto('', result);
     }
 
