@@ -15,7 +15,7 @@ export const requireAccessPermission = (moduleKey: AccessModule, permission: Acc
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             const authUser = (req as any).user;
-            if (authUser?.roleName === Roles.Admin) {
+            if (authUser?.roleName === Roles.Admin || authUser?.roleName === Roles.User) {
                 next();
                 return;
             }
@@ -42,7 +42,7 @@ export const requireAnyAccessPermission = (rules: AccessPermissionRule[]) => {
     return async (req: Request, _res: Response, next: NextFunction) => {
         try {
             const authUser = (req as any).user;
-            if (authUser?.roleName === Roles.Admin) {
+            if (authUser?.roleName === Roles.Admin || authUser?.roleName === Roles.User) {
                 next();
                 return;
             }
@@ -54,6 +54,55 @@ export const requireAnyAccessPermission = (rules: AccessPermissionRule[]) => {
                         authUser?.userId,
                         rule.moduleKey,
                         rule.permission,
+                    ),
+                ),
+            );
+            const hasPermission = permissionResults.some(Boolean);
+
+            if (!hasPermission) {
+                throw new ForbiddenException(messages.accessPermissionDenied);
+            }
+
+            next();
+        } catch (error: any) {
+            next(error);
+        }
+    };
+};
+
+export const requireSessionAccessPermission = (permission: AccessPermission) => {
+    return async (req: Request, _res: Response, next: NextFunction) => {
+        try {
+            const authUser = (req as any).user;
+            if (authUser?.roleName === Roles.Admin || authUser?.roleName === Roles.User) {
+                next();
+                return;
+            }
+
+            const querySachin = req.query.isSachinStatus;
+            const isSachin =
+                querySachin === 'true' ||
+                (querySachin as unknown) === true ||
+                req.body?.isSachinStatus === true;
+
+            const isExplicitSingle =
+                querySachin === 'false' ||
+                (querySachin as unknown) === false ||
+                (req.body?.isSachinStatus !== undefined && req.body?.isSachinStatus === false);
+
+            const modulesToCheck: AccessModule[] = isSachin
+                ? [AccessModule.TrainWithSachinManagement, AccessModule.SingleSessionManagement]
+                : isExplicitSingle
+                  ? [AccessModule.SingleSessionManagement]
+                  : [AccessModule.SingleSessionManagement, AccessModule.TrainWithSachinManagement];
+
+            const permissionResults = await Promise.all(
+                modulesToCheck.map((moduleKey) =>
+                    accessControlRepo.hasPermission(
+                        authUser?.roleId,
+                        authUser?.userId,
+                        moduleKey,
+                        permission,
                     ),
                 ),
             );

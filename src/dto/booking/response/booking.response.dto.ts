@@ -1,5 +1,5 @@
 import { BookingStatus, IPaginationMeta } from '../../../config';
-import { BookingEntity } from '../../../utils';
+import { BookingEntity } from '../../../utils/database';
 
 export class BookingResponseDto {
     id!: string;

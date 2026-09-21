@@ -1,5 +1,5 @@
 import { Gender, IPaginationMeta, UserStatus, UserType } from '../../../config';
-import { RoleEntity, UserEntity } from '../../../utils';
+import { RoleEntity, UserEntity } from '../../../utils/database';
 import { BranchResponseDto } from '../../branch';
 
 const formatMetricDate = (value?: string | null): string => {

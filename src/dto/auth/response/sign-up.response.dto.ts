@@ -1,5 +1,5 @@
 import { Gender, UserType } from '../../../config';
-import { UserEntity } from '../../../utils';
+import { UserEntity } from '../../../utils/database';
 import { UserPerformanceMetricResponseDto } from '../../user';
 import { RoleResponse } from './AddUser.response.dto';
 

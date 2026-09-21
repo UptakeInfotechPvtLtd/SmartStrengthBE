@@ -1,13 +1,9 @@
 import { AccessPermission, IJwtPayload, Roles, availableAccessModules } from '../config';
 import { AccessControlConfigResponseDto, AccessModuleResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import {
-    AccessControlRepository,
-    BadRequestException,
-    ForbiddenException,
-    RoleRepository,
-    UserRepository,
-} from '../utils';
+import { BadRequestException, ForbiddenException } from '../utils/error';
+import { AccessControlRepository, RoleRepository, UserRepository } from '../utils/database';
+import { seedStaffAccessControls } from '../utils/database/db/seeds/staff-access-control.seed';
 import {
     GetAccessConfigQueryPayload,
     GetUserAccessConfigParamsPayload,
@@ -120,6 +116,11 @@ export class AccessControlService {
 
     private async ensureModules() {
         await this.accessControlRepo.upsertModules([...availableAccessModules]);
+        try {
+            await seedStaffAccessControls();
+        } catch (error) {
+            console.error('Failed to seed staff access controls:', error);
+        }
         return this.accessControlRepo.findAllModules();
     }
 

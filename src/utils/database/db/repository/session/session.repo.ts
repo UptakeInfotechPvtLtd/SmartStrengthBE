@@ -66,7 +66,10 @@ export class SessionRepository extends Repository<SessionEntity> {
         });
     }
 
-    async listSessions(query: FetchSessionsQueryPayload): Promise<{
+    async listSessions(
+        query: FetchSessionsQueryPayload,
+        assignedBranchIds?: string[],
+    ): Promise<{
         sessions: SessionEntity[];
         total: number;
         page: number;
@@ -99,6 +102,16 @@ export class SessionRepository extends Repository<SessionEntity> {
 
                 if (query.branchId) {
                     queryBuilder.andWhere('branch.id = :branchId', { branchId: query.branchId });
+                }
+
+                if (assignedBranchIds !== undefined) {
+                    if (assignedBranchIds.length === 0) {
+                        queryBuilder.andWhere('1 = 0');
+                    } else {
+                        queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                            assignedBranchIds,
+                        });
+                    }
                 }
 
                 if (typeof query.isSachinStatus === 'boolean') {

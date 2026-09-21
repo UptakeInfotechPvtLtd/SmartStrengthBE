@@ -1,5 +1,5 @@
 import { IPaginationMeta } from '../../../config';
-import { EnquiryEntity } from '../../../utils';
+import { EnquiryEntity } from '../../../utils/database';
 
 export class EnquiryResponseDto {
     id!: string;

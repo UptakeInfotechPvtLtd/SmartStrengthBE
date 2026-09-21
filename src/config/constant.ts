@@ -1,5 +1,5 @@
 import { SignOptions } from 'jsonwebtoken';
-import { getEnv } from '../utils';
+import { getEnv } from '../utils/env.utils';
 
 export const TOKEN_EXPIRES = (getEnv('JWT_EXPIRES') ?? '1d') as SignOptions['expiresIn'];
 export const REFRESH_TOKEN_EXPIRES = (getEnv('JWT_REFRESH_TOKEN_EXPIRES') ??

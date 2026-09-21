@@ -1,5 +1,5 @@
 import { IPaginationMeta } from '../../../config';
-import { PackageEntity, UserPackageEntity } from '../../../utils';
+import { PackageEntity, UserPackageEntity } from '../../../utils/database';
 
 export class PackageResponseDto {
     id!: string;

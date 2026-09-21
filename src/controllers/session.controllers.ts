@@ -50,7 +50,7 @@ export class SessionController {
     }
 
     async listSessions(req: IAuthenticatedRequest<any, any, FetchSessionsQueryPayload>) {
-        const result = await this.sessionService.listSessions(req.query);
+        const result = await this.sessionService.listSessions(req.query, req.user);
         return new BaseResponseDto('', result);
     }
 }

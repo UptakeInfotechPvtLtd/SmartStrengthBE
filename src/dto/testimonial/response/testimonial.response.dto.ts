@@ -1,5 +1,5 @@
 import { IPaginationMeta, TestimonialStatus } from '../../../config';
-import { TestimonialEntity } from '../../../utils';
+import { TestimonialEntity } from '../../../utils/database';
 
 export class TestimonialResponseDto {
     id!: string;

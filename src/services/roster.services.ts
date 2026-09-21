@@ -252,7 +252,7 @@ export class RosterService {
     }
 
     private async getAssignedBranchIds(authUser?: IJwtPayload): Promise<string[] | undefined> {
-        if (authUser?.roleName !== Roles.SubAdmin) {
+        if (!authUser || ![Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)) {
             return undefined;
         }
 

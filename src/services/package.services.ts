@@ -6,13 +6,9 @@ import {
     PackageResponseDto,
 } from '../dto';
 import { messages } from '../lang/api-messages';
-import {
-    BadRequestException,
-    NotFoundException,
-    PackageRepository,
-    UserRepository,
-    buildPagination,
-} from '../utils';
+import { BadRequestException, NotFoundException } from '../utils/error';
+import { PackageRepository, UserRepository } from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     CreatePackageBodyPayload,
     FetchPackagePurchasesQueryPayload,
@@ -163,6 +159,6 @@ export class PackageService {
     }
 
     private shouldShowOnlyActivePackages(authUser?: IJwtPayload): boolean {
-        return ![Roles.Admin, Roles.SubAdmin].includes(authUser?.roleName as Roles);
+        return ![Roles.Admin, Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles);
     }
 }

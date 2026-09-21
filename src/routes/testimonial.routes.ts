@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { Roles } from '../config';
+import { AccessModule, AccessPermission, Roles } from '../config';
 import { TestimonialController } from '../controllers';
 import {
     optionalVerifyToken,
+    requireAccessPermission,
     routeHandler,
     testimonialService,
     verifyToken,
@@ -18,8 +19,8 @@ import {
 const router = Router();
 
 const testimonialController = new TestimonialController(testimonialService);
-const allRoles = [Roles.Admin, Roles.SubAdmin, Roles.User];
-const adminRoles = [Roles.Admin, Roles.SubAdmin];
+const allRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer];
 
 router.post(
     '/',
@@ -36,18 +37,21 @@ router.get(
 router.get(
     '/',
     verifyToken(allRoles),
+    requireAccessPermission(AccessModule.TestimonialManagement, AccessPermission.Read),
     validate(listTestimonialsSchema),
     routeHandler(testimonialController.listTestimonials),
 );
 router.patch(
     '/:id/status',
-    verifyToken(adminRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.TestimonialManagement, AccessPermission.Update),
     validate(updateTestimonialStatusSchema),
     routeHandler(testimonialController.updateTestimonialStatus),
 );
 router.delete(
     '/:id',
-    verifyToken(adminRoles),
+    verifyToken(authRoles),
+    requireAccessPermission(AccessModule.TestimonialManagement, AccessPermission.Delete),
     validate(testimonialIdSchema),
     routeHandler(testimonialController.deleteTestimonial),
 );

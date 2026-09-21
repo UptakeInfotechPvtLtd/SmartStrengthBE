@@ -1,15 +1,9 @@
 import { IJwtPayload, Roles, TestimonialStatus, UserStatus } from '../config';
 import { TestimonialListResponseDto, TestimonialResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import {
-    BadRequestException,
-    NotFoundException,
-    TestimonialRepository,
-    UnauthorizedException,
-    UserEntity,
-    UserRepository,
-    buildPagination,
-} from '../utils';
+import { BadRequestException, NotFoundException, UnauthorizedException } from '../utils/error';
+import { TestimonialRepository, UserEntity, UserRepository } from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     CreateTestimonialBodyPayload,
     FetchTestimonialsQueryPayload,

@@ -24,7 +24,7 @@ export class BookingController {
     }
 
     async listBookings(req: IAuthenticatedRequest<any, any, FetchBookingsQueryPayload>) {
-        const result = await this.bookingService.listBookings(req.query);
+        const result = await this.bookingService.listBookings(req.query, req.user);
         return new BaseResponseDto(messages.bookingsFetchedSuccessfully, result);
     }
 

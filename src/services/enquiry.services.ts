@@ -1,15 +1,10 @@
 import { BranchStatus } from '../config';
 import { EnquiryListResponseDto, EnquiryResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import {
-    BadRequestException,
-    BranchRepository,
-    EmailService,
-    EnquiryEntity,
-    EnquiryRepository,
-    NotFoundException,
-    buildPagination,
-} from '../utils';
+import { BadRequestException, NotFoundException } from '../utils/error';
+import { BranchRepository, EnquiryEntity, EnquiryRepository } from '../utils/database';
+import { EmailService } from '../utils/email.service';
+import { buildPagination } from '../utils/common.utils';
 import { getEnv } from '../utils/env.utils';
 import { EmailQueue } from '../utils/rabbitmq';
 import {

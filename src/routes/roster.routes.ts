@@ -13,7 +13,7 @@ import {
 const router = Router();
 
 const rosterController = new RosterController(rosterService);
-const authRoles = [Roles.Admin, Roles.SubAdmin];
+const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer];
 
 router.post(
     '/',

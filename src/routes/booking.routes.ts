@@ -13,7 +13,10 @@ import {
 const router = Router();
 
 const bookingController = new BookingController(bookingService);
-const viewRoles = [Roles.Admin, Roles.SubAdmin];
+const viewRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer];
+const cancelRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
+
+const rescheduleRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/',
@@ -29,13 +32,15 @@ router.get(
 );
 router.patch(
     '/:id/cancel',
-    verifyToken([Roles.User]),
+    verifyToken(cancelRoles),
+    requireAccessPermission(AccessModule.BookingManagement, AccessPermission.Update),
     validate(bookingIdSchema),
     routeHandler(bookingController.cancelBooking),
 );
 router.patch(
     '/:id/reschedule',
-    verifyToken([Roles.User]),
+    verifyToken(rescheduleRoles),
+    requireAccessPermission(AccessModule.BookingManagement, AccessPermission.Update),
     validate(rescheduleBookingSchema),
     routeHandler(bookingController.rescheduleBooking),
 );

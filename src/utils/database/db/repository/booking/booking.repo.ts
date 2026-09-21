@@ -56,6 +56,23 @@ export class BookingRepository extends Repository<BookingEntity> {
             .getOne();
     }
 
+    async findBookingByIdWithLock(
+        manager: EntityManager,
+        bookingId: string,
+    ): Promise<BookingEntity | null> {
+        return manager
+            .getRepository(BookingEntity)
+            .createQueryBuilder('booking')
+            .setLock('pessimistic_write', undefined, ['booking'])
+            .leftJoinAndSelect('booking.user', 'user')
+            .leftJoinAndSelect('booking.session', 'session')
+            .leftJoinAndSelect('booking.branch', 'branch')
+            .leftJoinAndSelect('booking.trainer', 'trainer')
+            .leftJoinAndSelect('booking.userPackage', 'userPackage')
+            .where('booking.id = :bookingId', { bookingId })
+            .getOne();
+    }
+
     async updateBooking(manager: EntityManager, booking: BookingEntity): Promise<BookingEntity> {
         const savedBooking = await manager.save(BookingEntity, booking);
         return (
@@ -136,7 +153,10 @@ export class BookingRepository extends Repository<BookingEntity> {
         return manager.save(UserPackageEntity, userPackage);
     }
 
-    async listBookings(query: FetchBookingsQueryPayload): Promise<{
+    async listBookings(
+        query: FetchBookingsQueryPayload,
+        assignedBranchIds?: string[],
+    ): Promise<{
         bookings: BookingEntity[];
         total: number;
         page: number;
@@ -152,6 +172,16 @@ export class BookingRepository extends Repository<BookingEntity> {
                     .leftJoinAndSelect('booking.branch', 'branch')
                     .leftJoinAndSelect('booking.trainer', 'trainer')
                     .leftJoinAndSelect('booking.userPackage', 'userPackage');
+
+                if (assignedBranchIds !== undefined) {
+                    if (assignedBranchIds.length === 0) {
+                        queryBuilder.andWhere('1 = 0');
+                    } else {
+                        queryBuilder.andWhere('branch.id IN (:...assignedBranchIds)', {
+                            assignedBranchIds,
+                        });
+                    }
+                }
 
                 if (query.search) {
                     queryBuilder.andWhere(

@@ -1,17 +1,15 @@
 import { IJwtPayload, Roles } from '../config';
 import { SessionListResponseDto, SessionResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
+import { BadRequestException, ConflictException, NotFoundException } from '../utils/error';
 import {
-    BadRequestException,
     BranchEntity,
     BranchRepository,
-    ConflictException,
-    NotFoundException,
     SessionBranchEntity,
     SessionRepository,
     UserRepository,
-    buildPagination,
-} from '../utils';
+} from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     CreateSessionBodyPayload,
     FetchSessionsQueryPayload,
@@ -93,9 +91,17 @@ export class SessionService {
         return new SessionResponseDto(await this.getSession(params?.id));
     }
 
-    async listSessions(query: FetchSessionsQueryPayload): Promise<SessionListResponseDto> {
+    async listSessions(
+        query: FetchSessionsQueryPayload,
+        authUser?: IJwtPayload,
+    ): Promise<SessionListResponseDto> {
+        const assignedBranchIds =
+            authUser?.roleName === Roles.User
+                ? await this.userRepo.findAssignedBranchIds(authUser.userId)
+                : undefined;
+
         const { sessions, total, page, pageSize, offset } =
-            await this.sessionRepo.listSessions(query);
+            await this.sessionRepo.listSessions(query, assignedBranchIds);
 
         return new SessionListResponseDto(
             sessions,
@@ -132,7 +138,7 @@ export class SessionService {
             throw new BadRequestException(messages.invalidBranchIds);
         }
 
-        if (authUser?.roleName !== Roles.SubAdmin) {
+        if (![Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
             return;
         }
 

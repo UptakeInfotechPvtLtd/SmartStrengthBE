@@ -1,18 +1,17 @@
 import { BookingStatus, BranchStatus, IJwtPayload, Roles, UserStatus } from '../config';
 import { BookingListResponseDto, BookingResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
+import { BadRequestException, NotFoundException } from '../utils/error';
 import {
-    BadRequestException,
     BookingEntity,
     BookingRepository,
     BranchEntity,
-    NotFoundException,
     SessionEntity,
     SessionRepository,
     UserEntity,
     UserRepository,
-    buildPagination,
-} from '../utils';
+} from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import { EntityManager } from 'typeorm';
 import {
     BookingIdParamsPayload,
@@ -118,9 +117,16 @@ export class BookingService {
         return new BookingResponseDto(booking);
     }
 
-    async listBookings(query: FetchBookingsQueryPayload): Promise<BookingListResponseDto> {
+    async listBookings(
+        query: FetchBookingsQueryPayload,
+        authUser?: IJwtPayload,
+    ): Promise<BookingListResponseDto> {
+        const assignedBranchIds =
+            authUser && [Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)
+                ? await this.userRepo.findAssignedBranchIds(authUser.userId)
+                : undefined;
         const { bookings, total, page, pageSize, offset } =
-            await this.bookingRepo.listBookings(query);
+            await this.bookingRepo.listBookings(query, assignedBranchIds);
 
         return new BookingListResponseDto(
             bookings,
@@ -148,19 +154,27 @@ export class BookingService {
         authUser: IJwtPayload,
     ): Promise<BookingResponseDto> {
         const booking = await this.bookingRepo.transaction(async (manager) => {
-            const bookingData = await this.getUserBookingWithLock(manager, params.id, authUser);
+            const bookingData = await this.getBookingWithLock(manager, params.id, authUser);
             this.ensureConfirmedBooking(bookingData);
-            this.ensureThreeHourCutoff(bookingData, messages.bookingCancelCutoffPassed);
 
-            const { yearStart, yearEnd } = this.getCurrentYearRange();
-            const cancellationCount = await this.bookingRepo.countUserCancellationsForYear(
-                manager,
-                authUser.userId,
-                yearStart,
-                yearEnd,
-            );
-            if (cancellationCount >= 1) {
-                throw new BadRequestException(messages.bookingCancelLimitReached);
+            if (authUser?.roleName === Roles.User) {
+                this.ensureThreeHourCutoff(bookingData, messages.bookingCancelCutoffPassed);
+
+                const { yearStart, yearEnd } = this.getCurrentYearRange();
+                const cancellationCount = await this.bookingRepo.countUserCancellationsForYear(
+                    manager,
+                    authUser.userId,
+                    yearStart,
+                    yearEnd,
+                );
+                if (cancellationCount >= 1) {
+                    throw new BadRequestException(messages.bookingCancelLimitReached);
+                }
+            } else if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
+                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+                if (!bookingData.branch || !assignedBranchIds.includes(bookingData.branch.id)) {
+                    throw new BadRequestException(messages.unauthorizedToCancelBooking);
+                }
             }
 
             bookingData.status = BookingStatus.Cancelled;
@@ -189,9 +203,18 @@ export class BookingService {
         this.ensureRequestedSlotDuration(startTime, endTime);
 
         const booking = await this.bookingRepo.transaction(async (manager) => {
-            const bookingData = await this.getUserBookingWithLock(manager, params.id, authUser);
+            const bookingData = await this.getBookingWithLock(manager, params.id, authUser);
             this.ensureConfirmedBooking(bookingData);
-            this.ensureThreeHourCutoff(bookingData, messages.bookingRescheduleCutoffPassed);
+
+            if (authUser?.roleName === Roles.User) {
+                this.ensureThreeHourCutoff(bookingData, messages.bookingRescheduleCutoffPassed);
+            } else if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
+                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+                if (!bookingData.branch || !assignedBranchIds.includes(bookingData.branch.id)) {
+                    throw new BadRequestException(messages.rescheduleUnauthorized);
+                }
+            }
+
             this.ensureDateAndTimeBookable(bookingData.booking_date, startTime, endTime);
 
             if (bookingData.start_time === startTime && bookingData.end_time === endTime) {
@@ -205,7 +228,7 @@ export class BookingService {
 
             const hasUserConflict = await this.bookingRepo.hasUserBookingOverlapWithLock(
                 manager,
-                authUser.userId,
+                bookingData.user.id,
                 bookingData.booking_date,
                 startTime,
                 endTime,
@@ -246,6 +269,31 @@ export class BookingService {
         }
 
         return session;
+    }
+
+    private async getBookingWithLock(
+        manager: EntityManager,
+        bookingId: string,
+        authUser: IJwtPayload,
+    ): Promise<BookingEntity> {
+        if (authUser?.roleName === Roles.User) {
+            const booking = await this.bookingRepo.findBookingByIdForUserWithLock(
+                manager,
+                bookingId,
+                authUser.userId,
+            );
+            if (!booking) {
+                throw new NotFoundException(messages.bookingNotFound);
+            }
+            return booking;
+        }
+
+        const booking = await this.bookingRepo.findBookingByIdWithLock(manager, bookingId);
+        if (!booking) {
+            throw new NotFoundException(messages.bookingNotFound);
+        }
+
+        return booking;
     }
 
     private async getUserBookingWithLock(

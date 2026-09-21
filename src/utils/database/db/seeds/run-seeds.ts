@@ -6,6 +6,7 @@ import { seedAccessModules } from './access-module.seed';
 import { seedAdminAccessControls } from './admin-access-control.seed';
 import { seedUserAccessControls } from './user-access-control.seed';
 import { seedRosterAccessControls } from './roster-access-control.seed';
+import { seedStaffAccessControls } from './staff-access-control.seed';
 
 async function runSeeds() {
     await DbDataSource.initialize();
@@ -15,6 +16,7 @@ async function runSeeds() {
     await seedAdminAccessControls();
     await seedRosterAccessControls();
     await seedUserAccessControls();
+    await seedStaffAccessControls();
     await seedBranches();
     await seedUsers();
 

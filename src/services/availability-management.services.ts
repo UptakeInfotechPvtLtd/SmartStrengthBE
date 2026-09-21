@@ -98,8 +98,9 @@ export class AvailabilityManagementService {
     async updateTrainerAvailability(
         params: UpdateTrainerAvailabilityStatusParamsPayload,
         body: UpdateTrainerAvailabilityStatusBodyPayload,
+        authUser?: IJwtPayload,
     ): Promise<TrainerAvailabilityResponseDto> {
-        const trainer = await this.getTrainer(params.trainerId);
+        const trainer = await this.getTrainer(params.trainerId, authUser);
         const availability = await this.availabilityRepo.upsertTrainerAvailability(
             trainer,
             body.status,
@@ -112,10 +113,11 @@ export class AvailabilityManagementService {
         query: FetchTrainerAvailabilityQueryPayload,
         authUser: IJwtPayload,
     ): Promise<TrainerAvailabilityListResponseDto> {
-        const assignedBranchIds =
-            authUser?.roleName === Roles.SubAdmin
-                ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
-                : undefined;
+        const assignedBranchIds = [Roles.SubAdmin, Roles.Trainer].includes(
+            authUser?.roleName as Roles,
+        )
+            ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
+            : undefined;
         const { rows, total, page, pageSize, offset } =
             await this.availabilityRepo.listTrainerAvailabilities(query, assignedBranchIds);
 
@@ -128,8 +130,9 @@ export class AvailabilityManagementService {
     async createTrainerMaintenance(
         params: CreateTrainerMaintenanceParamsPayload,
         body: CreateMaintenanceBodyPayload,
+        authUser?: IJwtPayload,
     ): Promise<MaintenanceResponseDto> {
-        const trainer = await this.getTrainer(params.trainerId);
+        const trainer = await this.getTrainer(params.trainerId, authUser);
         await this.ensureTrainerTimeFree(trainer.id, body);
 
         const maintenance = await this.availabilityRepo.createTrainerMaintenance({
@@ -145,15 +148,19 @@ export class AvailabilityManagementService {
 
     async listTrainerMaintenances(
         params: CreateTrainerMaintenanceParamsPayload,
+        authUser?: IJwtPayload,
     ): Promise<MaintenanceListResponseDto> {
-        const trainer = await this.getTrainer(params.trainerId);
+        const trainer = await this.getTrainer(params.trainerId, authUser);
         return new MaintenanceListResponseDto(
             await this.availabilityRepo.listTrainerMaintenances(trainer.id),
         );
     }
 
-    async deleteTrainerMaintenance(params: DeleteTrainerMaintenanceParamsPayload): Promise<void> {
-        const trainer = await this.getTrainer(params.trainerId);
+    async deleteTrainerMaintenance(
+        params: DeleteTrainerMaintenanceParamsPayload,
+        authUser?: IJwtPayload,
+    ): Promise<void> {
+        const trainer = await this.getTrainer(params.trainerId, authUser);
         const maintenance = await this.availabilityRepo.findTrainerMaintenanceById(
             params.maintenanceId,
             trainer.id,
@@ -166,7 +173,11 @@ export class AvailabilityManagementService {
     }
 
     private async getBranch(branchId: string, authUser: IJwtPayload) {
-        const assignedUserId = authUser?.roleName === Roles.SubAdmin ? authUser.userId : undefined;
+        const assignedUserId = [Roles.SubAdmin, Roles.Trainer].includes(
+            authUser?.roleName as Roles,
+        )
+            ? authUser.userId
+            : undefined;
         const branch = await this.branchRepo.findBranchById(branchId, assignedUserId);
         if (!branch) {
             throw new NotFoundException(messages.branchNotFound);
@@ -175,10 +186,22 @@ export class AvailabilityManagementService {
         return branch;
     }
 
-    private async getTrainer(trainerId: string) {
+    private async getTrainer(trainerId: string, authUser?: IJwtPayload) {
         const trainer = await this.userRepo.findUserByIdWithRole(trainerId);
         if (!trainer || trainer.role?.name !== Roles.Trainer) {
             throw new NotFoundException(messages.trainerNotFound);
+        }
+
+        if (authUser && [Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)) {
+            const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+            const trainerBranchIds =
+                trainer.userBranches
+                    ?.map((ub) => ub.branch?.id)
+                    .filter((id): id is string => Boolean(id)) || [];
+            const hasCommonBranch = trainerBranchIds.some((bId) => assignedBranchIds.includes(bId));
+            if (!hasCommonBranch && trainer.id !== authUser.userId) {
+                throw new NotFoundException(messages.trainerNotFound);
+            }
         }
 
         return trainer;

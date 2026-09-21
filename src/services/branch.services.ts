@@ -1,13 +1,9 @@
 import { BranchStatus, IJwtPayload, Roles } from '../config';
 import { BranchListResponseDto, BranchResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import {
-    BadRequestException,
-    BranchRepository,
-    NotFoundException,
-    UserBranchEntity,
-    buildPagination,
-} from '../utils';
+import { BadRequestException, NotFoundException } from '../utils/error';
+import { BranchRepository, UserBranchEntity } from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     BranchIdParamsPayload,
     CreateBranchBodyPayload,
@@ -182,7 +178,7 @@ export class BranchService {
     }
 
     private createAssignedUserBranches(authUser: IJwtPayload): UserBranchEntity[] {
-        if (authUser?.roleName !== Roles.SubAdmin) {
+        if (![Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
             return [];
         }
 
@@ -194,6 +190,6 @@ export class BranchService {
     }
 
     private shouldShowOnlyActiveBranches(authUser?: IJwtPayload): boolean {
-        return ![Roles.Admin, Roles.SubAdmin].includes(authUser?.roleName as Roles);
+        return ![Roles.Admin, Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles);
     }
 }

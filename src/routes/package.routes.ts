@@ -23,7 +23,7 @@ const router = Router();
 
 const packageController = new PackageController(packageService);
 const authRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
-const purchaseViewRoles = [Roles.Admin, Roles.SubAdmin, Roles.User];
+const purchaseViewRoles = [Roles.Admin, Roles.SubAdmin, Roles.Trainer, Roles.User];
 
 router.post(
     '/',

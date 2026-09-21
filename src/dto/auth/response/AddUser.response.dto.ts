@@ -1,5 +1,5 @@
 import { Gender, UserStatus, UserType } from '../../../config';
-import { RoleEntity, UserEntity } from '../../../utils';
+import { RoleEntity, UserEntity } from '../../../utils/database';
 import { UserPerformanceMetricResponseDto } from '../../user';
 
 export class RoleResponse {

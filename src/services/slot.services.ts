@@ -160,7 +160,11 @@ export class SlotService {
     }
 
     private async getBranch(branchId: string, authUser: IJwtPayload) {
-        const assignedUserId = authUser?.roleName === Roles.SubAdmin ? authUser.userId : undefined;
+        const assignedUserId = [Roles.SubAdmin, Roles.Trainer].includes(
+            authUser?.roleName as Roles,
+        )
+            ? authUser.userId
+            : undefined;
         const branch = await this.slotRepo.findAvailableBranchById(branchId, assignedUserId);
         if (!branch) {
             throw new NotFoundException(messages.branchNotFound);

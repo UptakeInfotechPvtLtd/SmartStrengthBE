@@ -77,6 +77,7 @@ export class AvailabilityManagementController {
         const result = await this.availabilityService.updateTrainerAvailability(
             req.params,
             req.body,
+            req.user,
         );
         return new BaseResponseDto(messages.trainerAvailabilityUpdatedSuccessfully, result);
     }
@@ -100,6 +101,7 @@ export class AvailabilityManagementController {
         const result = await this.availabilityService.createTrainerMaintenance(
             req.params,
             req.body,
+            req.user,
         );
         return new BaseResponseDto(messages.trainerMaintenanceCreatedSuccessfully, result);
     }
@@ -107,14 +109,14 @@ export class AvailabilityManagementController {
     async listTrainerMaintenances(
         req: IAuthenticatedRequest<CreateTrainerMaintenanceParamsPayload>,
     ) {
-        const result = await this.availabilityService.listTrainerMaintenances(req.params);
+        const result = await this.availabilityService.listTrainerMaintenances(req.params, req.user);
         return new BaseResponseDto(messages.trainerMaintenanceFetchedSuccessfully, result);
     }
 
     async deleteTrainerMaintenance(
         req: IAuthenticatedRequest<DeleteTrainerMaintenanceParamsPayload>,
     ) {
-        await this.availabilityService.deleteTrainerMaintenance(req.params);
+        await this.availabilityService.deleteTrainerMaintenance(req.params, req.user);
         return new BaseResponseDto(messages.trainerMaintenanceDeletedSuccessfully);
     }
 }

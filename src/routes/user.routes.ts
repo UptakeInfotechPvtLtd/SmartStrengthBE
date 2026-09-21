@@ -59,7 +59,7 @@ router.put(
 );
 router.post(
     '/:id/metrics',
-    verifyToken([Roles.Admin, Roles.SubAdmin]),
+    verifyToken([Roles.Admin, Roles.SubAdmin, Roles.Trainer]),
     requireAnyAccessPermission([
         { moduleKey: AccessModule.UserManagement, permission: AccessPermission.Update },
         { moduleKey: AccessModule.StaffManagement, permission: AccessPermission.Update },

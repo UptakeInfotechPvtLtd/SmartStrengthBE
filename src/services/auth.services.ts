@@ -6,20 +6,20 @@ import { SignUpResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
+    ConflictException,
+    NotFoundException,
+    UnauthorizedException,
+} from '../utils/error';
+import {
     BlackListTokenRepository,
     BranchEntity,
     BranchRepository,
-    ConflictException,
-    NotFoundException,
     RoleRepository,
-    UnauthorizedException,
     UserEntity,
     UserBranchEntity,
     UserRepository,
-    comparePassword,
-    generateTokens,
-    otpGenerator,
-} from '../utils';
+} from '../utils/database';
+import { comparePassword, generateTokens, otpGenerator } from '../utils/crypt.util';
 import { EmailService } from '../utils/email.service';
 import { EmailQueue } from '../utils/rabbitmq';
 import {
@@ -285,7 +285,7 @@ export class AuthService {
         ) {
             throw new BadRequestException(messages.adminCanOnlyChangeManagedUserPassword);
         }
-        if (authUser?.roleName === Roles.SubAdmin) {
+        if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
             await this.ensureUserWithinAssignedBranches(user, authUser);
         }
 

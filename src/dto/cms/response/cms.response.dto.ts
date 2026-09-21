@@ -1,5 +1,5 @@
 import { IPaginationMeta, VideoSource, VideoStatus } from '../../../config';
-import { VideoLibraryEntity } from '../../../utils';
+import { VideoLibraryEntity } from '../../../utils/database';
 
 export class VideoLibraryResponseDto {
     id!: string;

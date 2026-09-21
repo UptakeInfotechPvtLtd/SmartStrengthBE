@@ -1,5 +1,5 @@
 import { CommonDropdownResponseDto, RoleDropdownResponseDto, UploadFileResponseDto } from '../dto';
-import { RoleRepository } from '../utils';
+import { RoleRepository } from '../utils/database';
 
 export class CommonService {
     constructor(private readonly roleRepo: RoleRepository) {}

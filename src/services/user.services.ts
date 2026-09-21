@@ -9,18 +9,20 @@ import {
 import { messages } from '../lang/api-messages';
 import {
     BadRequestException,
-    BranchEntity,
-    BranchRepository,
     ConflictException,
     NotFoundException,
-    RoleRepository,
     UnauthorizedException,
+} from '../utils/error';
+import {
+    BranchEntity,
+    BranchRepository,
+    RoleRepository,
     UserBranchEntity,
     UserEntity,
     UserPerformanceMetricEntity,
     UserRepository,
-    buildPagination,
-} from '../utils';
+} from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     CreateManagedUserBodyPayload,
     CreateUserMetricBodyPayload,
@@ -250,10 +252,11 @@ export class UserService {
             await this.ensureBranchesAllowed([query.branchId], authUser);
         }
 
-        const assignedBranchIds =
-            authUser?.roleName === Roles.SubAdmin
-                ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
-                : undefined;
+        const assignedBranchIds = [Roles.SubAdmin, Roles.Trainer].includes(
+            authUser?.roleName as Roles,
+        )
+            ? await this.userRepo.findAssignedBranchIds(authUser?.userId)
+            : undefined;
 
         const { users, total, page, pageSize, offset } = await this.userRepo.listUsers(
             query,
@@ -280,7 +283,7 @@ export class UserService {
             throw new UnauthorizedException(messages.cannotManageUserRole);
         }
 
-        if (authUser?.roleName === Roles.SubAdmin) {
+        if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
             await this.ensureUserWithinAssignedBranches(user, authUser);
         }
 
@@ -298,7 +301,7 @@ export class UserService {
             return user;
         }
 
-        if (authRole === Roles.SubAdmin) {
+        if ([Roles.SubAdmin, Roles.Trainer].includes(authRole)) {
             if (![Roles.Trainer, Roles.User].includes(user?.role?.name as Roles)) {
                 throw new UnauthorizedException(messages.cannotManageUserRole);
             }
@@ -323,7 +326,7 @@ export class UserService {
             return [Roles.SubAdmin, Roles.Trainer, Roles.User];
         }
 
-        if (roleName === Roles.SubAdmin) {
+        if (roleName === Roles.SubAdmin || roleName === Roles.Trainer) {
             return [Roles.Trainer, Roles.User];
         }
 
@@ -333,6 +336,10 @@ export class UserService {
     private getListVisibleRoles(roleName: Roles): Roles[] {
         if (roleName === Roles.SubAdmin) {
             return [Roles.Trainer];
+        }
+
+        if (roleName === Roles.Trainer) {
+            return [Roles.User];
         }
 
         return this.getVisibleRoles(roleName);
@@ -350,7 +357,7 @@ export class UserService {
             return;
         }
 
-        if (authRole === Roles.SubAdmin && [Roles.Trainer, Roles.User].includes(targetRole)) {
+        if ([Roles.SubAdmin, Roles.Trainer].includes(authRole) && [Roles.Trainer, Roles.User].includes(targetRole)) {
             return;
         }
 
@@ -429,7 +436,7 @@ export class UserService {
             throw new BadRequestException(messages.invalidBranchIds);
         }
 
-        if (authUser?.roleName !== Roles.SubAdmin) return;
+        if (![Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) return;
 
         const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser?.userId);
         const hasUnauthorizedBranch = branchIds.some(

@@ -1,5 +1,5 @@
 import { AccessModule, AccessPermission } from '../../../config';
-import { AccessControlEntity, AccessModuleEntity, RoleEntity } from '../../../utils';
+import { AccessControlEntity, AccessModuleEntity, RoleEntity } from '../../../utils/database';
 
 export class AccessModuleResponseDto {
     id!: string;

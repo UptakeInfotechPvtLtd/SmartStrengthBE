@@ -26,7 +26,7 @@ import {
     VideoSource,
     VideoStatus,
 } from '../../../config/enum';
-import { RoleEntity } from '../../../utils';
+import { RoleEntity } from '../../../utils/database';
 
 export class DropdownOptionDto {
     label!: string;

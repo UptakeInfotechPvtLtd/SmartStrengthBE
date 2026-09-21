@@ -1,5 +1,5 @@
 import { IPaginationMeta } from '../../../config';
-import { SessionEntity } from '../../../utils';
+import { SessionEntity } from '../../../utils/database';
 import { BranchResponseDto } from '../../branch';
 
 export class SessionResponseDto {

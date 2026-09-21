@@ -1,7 +1,9 @@
 import { IJwtPayload, Roles, VideoStatus } from '../config';
 import { VideoLibraryListResponseDto, VideoLibraryResponseDto } from '../dto';
 import { messages } from '../lang/api-messages';
-import { CmsRepository, NotFoundException, UnauthorizedException, buildPagination } from '../utils';
+import { NotFoundException, UnauthorizedException } from '../utils/error';
+import { CmsRepository } from '../utils/database';
+import { buildPagination } from '../utils/common.utils';
 import {
     CreateVideoLibraryBodyPayload,
     FetchVideoLibraryQueryPayload,
@@ -103,7 +105,7 @@ export class CmsService {
             return;
         }
 
-        if ([Roles.Admin, Roles.SubAdmin].includes(roleName)) {
+        if ([Roles.Admin, Roles.SubAdmin, Roles.Trainer].includes(roleName)) {
             return;
         }
 
