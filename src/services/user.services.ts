@@ -335,7 +335,7 @@ export class UserService {
 
     private getListVisibleRoles(roleName: Roles): Roles[] {
         if (roleName === Roles.SubAdmin) {
-            return [Roles.Trainer];
+            return [Roles.Trainer, Roles.User];
         }
 
         if (roleName === Roles.Trainer) {
