@@ -139,7 +139,7 @@ export class BookingRepository extends Repository<BookingEntity> {
             .leftJoinAndSelect('user_package.user', 'user')
             .leftJoinAndSelect('user_package.package', 'package')
             .where('user.id = :userId', { userId })
-            .andWhere('package.id = :packageId', { packageId })
+            .andWhere('(user_package.id = :packageId OR package.id = :packageId)', { packageId })
             .andWhere('user_package.deleted_at IS NULL')
             .orderBy('user_package.expired_at', 'ASC')
             .addOrderBy('user_package.created_at', 'ASC')
