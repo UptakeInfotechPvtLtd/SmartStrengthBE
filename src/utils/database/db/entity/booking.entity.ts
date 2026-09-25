@@ -34,9 +34,12 @@ export class BookingEntity {
     @JoinColumn({ name: 'user_id' })
     user!: UserEntity;
 
-    @ManyToOne(() => SessionEntity, (session) => session.bookings, { onDelete: 'CASCADE' })
+    @ManyToOne(() => SessionEntity, (session) => session.bookings, {
+        nullable: true,
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'session_id' })
-    session!: SessionEntity;
+    session!: SessionEntity | null;
 
     @ManyToOne(() => BranchEntity, (branch) => branch.bookings, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'branch_id' })

@@ -6,6 +6,7 @@ import {
     BookingEntity,
     BookingRepository,
     BranchEntity,
+    BranchRepository,
     SessionEntity,
     SessionRepository,
     UserEntity,
@@ -28,6 +29,7 @@ export class BookingService {
     constructor(
         private readonly bookingRepo: BookingRepository,
         private readonly sessionRepo: SessionRepository,
+        private readonly branchRepo: BranchRepository,
         private readonly userRepo: UserRepository,
         private readonly slotService: SlotService,
     ) {}
@@ -41,8 +43,10 @@ export class BookingService {
             throw new NotFoundException(messages.userNotFound);
         }
 
-        const session = await this.getActiveSession(body.sessionId);
-        const branch = this.resolveSessionBranch(session, body.branchId);
+        const session = body.sessionId ? await this.getActiveSession(body.sessionId) : null;
+        const branch = session
+            ? this.resolveSessionBranch(session, body.branchId)
+            : await this.getActiveBranch(body.branchId);
         const startTime = this.normalizeTime(body.startTime);
         const endTime = this.normalizeTime(body.endTime);
         this.ensureDateAndTimeBookable(body.date, startTime, endTime);
@@ -125,8 +129,10 @@ export class BookingService {
             authUser && [Roles.SubAdmin, Roles.Trainer].includes(authUser.roleName as Roles)
                 ? await this.userRepo.findAssignedBranchIds(authUser.userId)
                 : undefined;
-        const { bookings, total, page, pageSize, offset } =
-            await this.bookingRepo.listBookings(query, assignedBranchIds);
+        const { bookings, total, page, pageSize, offset } = await this.bookingRepo.listBookings(
+            query,
+            assignedBranchIds,
+        );
 
         return new BookingListResponseDto(
             bookings,
@@ -171,7 +177,9 @@ export class BookingService {
                     throw new BadRequestException(messages.bookingCancelLimitReached);
                 }
             } else if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
-                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(
+                    authUser.userId,
+                );
                 if (!bookingData.branch || !assignedBranchIds.includes(bookingData.branch.id)) {
                     throw new BadRequestException(messages.unauthorizedToCancelBooking);
                 }
@@ -209,7 +217,9 @@ export class BookingService {
             if (authUser?.roleName === Roles.User) {
                 this.ensureThreeHourCutoff(bookingData, messages.bookingRescheduleCutoffPassed);
             } else if ([Roles.SubAdmin, Roles.Trainer].includes(authUser?.roleName as Roles)) {
-                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(authUser.userId);
+                const assignedBranchIds = await this.userRepo.findAssignedBranchIds(
+                    authUser.userId,
+                );
                 if (!bookingData.branch || !assignedBranchIds.includes(bookingData.branch.id)) {
                     throw new BadRequestException(messages.rescheduleUnauthorized);
                 }
@@ -269,6 +279,15 @@ export class BookingService {
         }
 
         return session;
+    }
+
+    private async getActiveBranch(branchId: string): Promise<BranchEntity> {
+        const branch = await this.branchRepo.findBranchById(branchId);
+        if (!branch || branch.status !== BranchStatus.Active) {
+            throw new NotFoundException(messages.branchNotFound);
+        }
+
+        return branch;
     }
 
     private async getBookingWithLock(

@@ -18,6 +18,14 @@ const optionalString = (message: string) =>
 const uuidSchema = (message: string) =>
     requiredString(message).refine((value) => uuidRegex.test(value), { error: message });
 
+const optionalUuidSchema = (message: string) =>
+    optionalString(message).pipe(
+        z
+            .string()
+            .refine((value) => uuidRegex.test(value), { error: message })
+            .optional(),
+    );
+
 const timeSchema = (message: string) =>
     requiredString(message).refine((value) => timeRegex.test(value), { error: message });
 
@@ -28,20 +36,22 @@ export const createBookingSchema = {
                 (value) => dateRegex.test(value),
                 { error: validationMessages.booking.dateInvalid },
             ),
-            sessionId: uuidSchema(validationMessages.booking.sessionIdInvalid),
+            sessionId: optionalUuidSchema(validationMessages.booking.sessionIdInvalid),
             branchId: uuidSchema(validationMessages.booking.branchIdInvalid),
-            packageId: optionalString(validationMessages.package.packageIdInvalid).pipe(
-                z
-                    .string()
-                    .refine((value) => uuidRegex.test(value), {
-                        error: validationMessages.package.packageIdInvalid,
-                    })
-                    .optional(),
-            ),
+            packageId: optionalUuidSchema(validationMessages.package.packageIdInvalid),
             startTime: timeSchema(validationMessages.booking.startTimeInvalid),
             endTime: timeSchema(validationMessages.booking.endTimeInvalid),
         })
-        .strict(),
+        .strict()
+        .superRefine((value, ctx) => {
+            if (!value.sessionId && !value.packageId) {
+                ctx.addIssue({
+                    code: 'custom',
+                    path: ['sessionId'],
+                    message: validationMessages.booking.sessionIdInvalid,
+                });
+            }
+        }),
 };
 
 export const listBookingsSchema = {

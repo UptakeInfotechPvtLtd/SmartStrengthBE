@@ -62,14 +62,18 @@ export let enquiryService: EnquiryService;
 export let testimonialService: TestimonialService;
 
 export const initServices = () => {
-    if (!authService && AuthService) authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
+    if (!authService && AuthService)
+        authService = new AuthService(userRepo, roleRepo, branchRepo, blackListTokenRepo);
     if (!branchService && BranchService) branchService = new BranchService(branchRepo);
     if (!commonService && CommonService) commonService = new CommonService(roleRepo);
-    if (!sessionService && SessionService) sessionService = new SessionService(sessionRepo, branchRepo, userRepo);
-    if (!packageService && PackageService) packageService = new PackageService(packageRepo, userRepo);
+    if (!sessionService && SessionService)
+        sessionService = new SessionService(sessionRepo, branchRepo, userRepo);
+    if (!packageService && PackageService)
+        packageService = new PackageService(packageRepo, userRepo);
     if (!userService && UserService) userService = new UserService(userRepo, roleRepo, branchRepo);
     if (!cmsService && CmsService) cmsService = new CmsService(cmsRepo);
-    if (!accessControlService && AccessControlService) accessControlService = new AccessControlService(accessControlRepo, roleRepo, userRepo);
+    if (!accessControlService && AccessControlService)
+        accessControlService = new AccessControlService(accessControlRepo, roleRepo, userRepo);
     if (!availabilityManagementService && AvailabilityManagementService)
         availabilityManagementService = new AvailabilityManagementService(
             availabilityManagementRepo,
@@ -77,10 +81,19 @@ export const initServices = () => {
             userRepo,
         );
     if (!slotService && SlotService) slotService = new SlotService(slotRepo);
-    if (!bookingService && BookingService) bookingService = new BookingService(bookingRepo, sessionRepo, userRepo, slotService);
+    if (!bookingService && BookingService)
+        bookingService = new BookingService(
+            bookingRepo,
+            sessionRepo,
+            branchRepo,
+            userRepo,
+            slotService,
+        );
     if (!rosterService && RosterService) rosterService = new RosterService(rosterRepo, userRepo);
-    if (!enquiryService && EnquiryService) enquiryService = new EnquiryService(enquiryRepo, branchRepo);
-    if (!testimonialService && TestimonialService) testimonialService = new TestimonialService(testimonialRepo, userRepo);
+    if (!enquiryService && EnquiryService)
+        enquiryService = new EnquiryService(enquiryRepo, branchRepo);
+    if (!testimonialService && TestimonialService)
+        testimonialService = new TestimonialService(testimonialRepo, userRepo);
 };
 
 try {
