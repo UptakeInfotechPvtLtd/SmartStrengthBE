@@ -134,15 +134,15 @@ export class BookingRepository extends Repository<BookingEntity> {
     ): Promise<UserPackageEntity | null> {
         return manager
             .getRepository(UserPackageEntity)
-            .createQueryBuilder('userPackage')
-            .setLock('pessimistic_write', undefined, ['userPackage'])
-            .leftJoinAndSelect('userPackage.user', 'user')
-            .leftJoinAndSelect('userPackage.package', 'package')
+            .createQueryBuilder('user_package')
+            .setLock('pessimistic_write', undefined, ['user_package'])
+            .leftJoinAndSelect('user_package.user', 'user')
+            .leftJoinAndSelect('user_package.package', 'package')
             .where('user.id = :userId', { userId })
             .andWhere('package.id = :packageId', { packageId })
-            .andWhere('userPackage.deleted_at IS NULL')
-            .orderBy('userPackage.expired_at', 'ASC')
-            .addOrderBy('userPackage.created_at', 'ASC')
+            .andWhere('user_package.deleted_at IS NULL')
+            .orderBy('user_package.expired_at', 'ASC')
+            .addOrderBy('user_package.created_at', 'ASC')
             .getOne();
     }
 
